@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, numeric, pgEnum, boolean } from "drizzle-orm/pg-core";
 
 export const type = pgEnum("type", ["free","free-paywall","paid"]);
 
@@ -29,7 +29,6 @@ export const project_executions = pgTable("project_executions", {
   user_id: serial("user_id"),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
 });
-
 
 export type InsertProject = typeof project.$inferInsert;
 export type SelectProject = typeof project.$inferSelect;
