@@ -29,7 +29,8 @@ export const users = pgTable("users", {
   username: text("name").notNull(),
   note: text("note"),
   key: text("key").notNull(),
-  creation_timestamp: timestamp("created_at").notNull().defaultNow(),
+  hwid: text("hwid").notNull(),
+  executor: text("executor").notNull(),
 });
 
 export const project_executions = pgTable("project_executions", {
