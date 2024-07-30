@@ -23,15 +23,13 @@ function generate_key() {
 }
 
 export async function POST(req: NextRequest) {
-  const { 
+  let { 
     discord_id,
     username,
     note,
     key_expires,
     key_type
   } = await req.json();
-
-
 
   const session = await auth();
 
@@ -41,11 +39,23 @@ export async function POST(req: NextRequest) {
   
   const new_key = generate_key();
 
+  if (note == "") {
+    note = null;
+  }
+
+  if (key_expires) {
+    key_expires = new Date(key_expires);
+  }
+
+  if (key_type == "permanent") {
+    key_expires = null;
+  }
+
   await db.insert(users).values({
     discord_id: discord_id,
     username: username,
     note: note,
-    key_expires: key_expires,
+    key_expires: key_expires ?? null,
     key_type: key_type,
     key: new_key,
   });
