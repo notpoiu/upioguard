@@ -9,6 +9,12 @@ export const project = pgTable("project", {
   author_id: text("author_id").notNull(),
   total_executions: numeric("total_executions").notNull().default("0"),
   project_type: type("project_type").notNull().default("paid"),
+
+  github_owner: text("github_owner").notNull(),
+  github_repo: text("github_repo").notNull(),
+  github_path: text("github_path").notNull(),
+
+  discord_link: text("discord_link"),
 });
 
 export const project_admins = pgTable("project_admins", {
