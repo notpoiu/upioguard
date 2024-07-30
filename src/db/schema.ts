@@ -20,6 +20,33 @@ export const project = pgTable("project", {
   discord_link: text("discord_link"),
 });
 
+
+export interface Project {
+
+  project_id: number;
+
+  name: string;
+
+  description: string;
+
+  creation_timestamp: Date;
+
+  author_id: string;
+
+  total_executions: string;
+
+  project_type: "free-paywall" | "paid";
+
+  github_owner: string;
+
+  github_repo: string;
+
+  github_path: string;
+
+  discord_link: string | null | undefined;
+
+}
+
 export const project_admins = pgTable("project_admins", {
   discord_id: text("discord_id").primaryKey().notNull(),
   name: text("name").notNull(),

@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (response.status !== 200) {
-          return null;
+          return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
       }
   
       // @ts-ignore
@@ -185,7 +185,7 @@ ${content}`);
       });
 
       if (response.status !== 200) {
-          return null;
+          return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
       }
   
       // @ts-ignore
