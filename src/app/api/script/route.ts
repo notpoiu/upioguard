@@ -3,6 +3,11 @@ import { project, users } from "@/db/schema";
 import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
+import { Octokit } from "@octokit/rest";
+
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
 
 export async function GET(request: NextRequest) {
 
@@ -31,7 +36,11 @@ export async function GET(request: NextRequest) {
 
     const user_data = user_resp[0];
 
-    if (user_data.project_id != project_data.) {
+    if (user_data.project_id != project_data.project_id) {
+      return new Response(error_script);
+    }
+
+
   }
 
 }

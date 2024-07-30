@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   username: text("name").notNull(),
   note: text("note"),
   key: text("key").notNull(),
+  key_expires: timestamp("key_expires"),
   hwid: text("hwid").notNull(),
   executor: text("executor").notNull(),
 });
