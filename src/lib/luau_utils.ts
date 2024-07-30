@@ -1,3 +1,4 @@
+// Thanks mstudio45 for the discord button addition :D
 export function kick_script(title: string, message: string, discordBtn: boolean, discord_link: string) {
   title = title.replaceAll("\n", "\\n").replaceAll("\r", "\\r");
   message = message.replaceAll("\n", "\\n").replaceAll("\r", "\\r");
