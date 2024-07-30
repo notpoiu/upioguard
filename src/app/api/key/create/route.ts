@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { get } from "http";
@@ -29,6 +30,14 @@ export async function POST(req: NextRequest) {
     key_expires,
     key_type
   } = await req.json();
+
+
+
+  const session = await auth();
+
+  if (!session && req.headers.get("api-key") != process.env.API_KEY) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   
   const new_key = generate_key();
 
