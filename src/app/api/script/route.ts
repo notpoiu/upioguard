@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   if (project_data.project_type == "paid") {
     const key = request.headers.get("user-upioguard-key");
 
-    const is_discord_enabled = project_data.discord_link != null;
+    const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
     const discord_link = project_data.discord_link ?? "";
 
     const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       return new Response(error_script);
     }
 
-    if (user_data.key_expires) {
+    if (user_data.key_expires && user_data.key_type != "permanent") {
       if (user_data.key_expires < new Date()) {
         return new Response(kick_script("upioguard", "Key has expired", is_discord_enabled, discord_link));
       }
@@ -148,12 +148,8 @@ ${content}`);
       }
 
       const user_data = user_resp[0];
-
-      if (user_data.project_id != project_data.project_id) {
-        return new Response(error_script);
-      }
-  
-      if (user_data.key_expires) {
+      
+      if (user_data.key_expires && user_data.key_type != "permanent") {
         if (user_data.key_expires < new Date()) {
           return new Response(kick_script("upioguard", "Key has expired", is_discord_enabled, discord_link));
         }
