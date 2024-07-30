@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import Navbar from "@/components/navbar";
+import Navbar from "@/app/dashboard/components/navbar";
 import { db } from "@/db";
 import { project_admins } from "@/db/schema";
 import type { Metadata } from "next";

@@ -47,10 +47,12 @@ export default async function Dashboard() {
       )}
 
       {is_project_initialized && (
-        <div className="relative bg-secondary text-primary rounded-md p-3 my-2 min-h-[5rem]">
-          <CopyPasteButton text={`loadstring(game:HttpGet("${process.env.NODE_ENV == "production" ? "https://" : "http://"}${headersList.get("host")}/api/script"))()`} className="absolute top-0 right-0 mt-2 mr-2" />
-          <span className="max-w-[30rem] text-wrap">loadstring(game:HttpGet(&quot;{process.env.NODE_ENV == "production" ? "https://" : "http://"}{headersList.get("host")}/api/script&quot;))()</span>
-        </div>
+        <>
+          <div className="relative bg-secondary text-primary rounded-md p-3 my-2 min-h-[5rem]">
+            <CopyPasteButton text={`loadstring(game:HttpGet("${process.env.NODE_ENV == "production" ? "https://" : "http://"}${headersList.get("host")}/api/script"))()`} className="absolute top-0 right-0 mt-2 mr-2" />
+            <span className="max-w-[30rem] text-wrap">loadstring(game:HttpGet(&quot;{process.env.NODE_ENV == "production" ? "https://" : "http://"}{headersList.get("host")}/api/script&quot;))()</span>
+          </div>
+        </>
       )}
     </main>
   );

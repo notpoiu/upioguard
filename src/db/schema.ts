@@ -1,7 +1,7 @@
 import { pgTable, serial, text, timestamp, numeric, pgEnum, boolean } from "drizzle-orm/pg-core";
 
 export const type = pgEnum("type", ["free-paywall","paid"]);
-export const key_type = pgEnum("key_type", ["free-paywall","paid"]);
+export const key_type = pgEnum("key_type", ["temporary","permanent","checkpoint"]);
 
 export const project = pgTable("project", {
   project_id: serial("project_id").primaryKey().notNull(),
@@ -55,14 +55,14 @@ export const project_admins = pgTable("project_admins", {
 
 export const users = pgTable("users", {
   project_id: serial("project_id").primaryKey().notNull(),
-  discord_id: text("discord_id"),
+  discord_id: text("discord_id").notNull(),
   username: text("name").notNull(),
   note: text("note"),
   key: text("key").notNull(),
   key_expires: timestamp("key_expires"),
   key_type: key_type("key_type"),
   hwid: text("hwid"),
-  executor: text("executor").notNull(),
+  executor: text("executor"),
 });
 
 export const project_executions = pgTable("project_executions", {

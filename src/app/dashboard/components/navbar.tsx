@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HamburgerMenuIcon} from "@radix-ui/react-icons";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import React from "react";
-import { ModeToggle } from "./mode-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
-import { BarChart2Icon, Home, Settings } from "lucide-react";
+import { BarChart2Icon, Home, KeyIcon, Settings } from "lucide-react";
 
 const pages = [
   { name: "Home", link: "/dashboard", icon: <Home/> },
+  { name: "Keys", link: "/dashboard/keys", icon: <KeyIcon/> },
   { name: "Analytics", link: "/dashboard/analytics", icon: <BarChart2Icon/> },
   { name: "Settings", link: "/projects", icon: <Settings/> }
 ]

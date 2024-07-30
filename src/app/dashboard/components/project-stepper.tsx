@@ -131,7 +131,7 @@ export default function ProjectCreationStepper() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="free-paywall">Free And Paid</SelectItem>
+                  <SelectItem value="free-paywall">Freemium</SelectItem>
                 </SelectContent>
               </Select>
             </div>
