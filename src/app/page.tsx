@@ -9,7 +9,7 @@ export default async function Home() {
       {!session && (
         <form action={async () => {
           "use server";
-          await signIn("discord");
+          await signIn("discord", {redirectTo: "/dashboard"});
         }}>
           <Button>Login/Sign in via Discord</Button>
         </form>

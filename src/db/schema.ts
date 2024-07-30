@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   discord_id: text("discord_id"),
   username: text("name").notNull(),
   note: text("note"),
+  key: text("key").notNull(),
   creation_timestamp: timestamp("created_at").notNull().defaultNow(),
 });
 
