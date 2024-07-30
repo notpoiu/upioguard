@@ -40,6 +40,14 @@ export async function GET(request: NextRequest) {
       return new Response(error_script);
     }
 
+    if (user_data.key_expires) {
+      if (user_data.key_expires < new Date()) {
+        return new Response(kick_script("upioguard", "Key has expired", false, ""));
+      }
+    }
+
+
+
 
   }
 
