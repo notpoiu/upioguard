@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   // Fetch HWID
   const fingerprint = get_hwid(request.headers);
 
-  if (!fingerprint || fingerprint.trim() == "") {
+  if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "") {
     return new Response(kick_script("upioguard", "Invalid executor", false, ""));
   }
 
