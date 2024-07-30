@@ -1,30 +1,24 @@
 import { pgTable, serial, text, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
 
-// Passwords are stored as SHA512 hashes with a salt (src/lib/password.ts)
-
 export const type = pgEnum("type", ["free","free-paywall","paid"]);
 
-export const projects = pgTable("projects", {
-  id: serial("id").primaryKey().notNull(),
+export const project = pgTable("project", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   creation_timestamp: timestamp("created_at").notNull().defaultNow(),
-  author: serial("author").notNull(),
+  author_id: text("author_id").notNull(),
   total_executions: numeric("total_executions").notNull().default("0"),
-  type: type("paid").notNull(),
+  project_type: type("project_type").notNull().default("paid"),
 });
 
 export const project_admins = pgTable("project_admins", {
   discord_id: text("discord_id").primaryKey().notNull(),
-  id: serial("id").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  password: text("password").notNull(),
-  creation_timestamp: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: serial("id").primaryKey().notNull(),
   discord_id: text("discord_id"),
   username: text("name").notNull(),
   note: text("note"),
@@ -32,14 +26,13 @@ export const users = pgTable("users", {
 });
 
 export const project_executions = pgTable("project_executions", {
-  project_id: serial("project_id").primaryKey().notNull(),
   user_id: serial("user_id"),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
 });
 
 
-export type InsertProject = typeof projects.$inferInsert;
-export type SelectProject = typeof projects.$inferSelect;
+export type InsertProject = typeof project.$inferInsert;
+export type SelectProject = typeof project.$inferSelect;
 
 export type InsertProjectAdmin = typeof project_admins.$inferInsert;
 export type SelectProjectAdmin = typeof project_admins.$inferSelect;
