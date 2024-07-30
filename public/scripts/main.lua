@@ -11,6 +11,6 @@ local response = req({
 })
 
 print("response:")
-print(response.body)
+print(response.Body)
 
-loadstring(response.body)()
+loadstring(response.Body)()
