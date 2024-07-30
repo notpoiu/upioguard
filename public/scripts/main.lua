@@ -10,7 +10,4 @@ local response = req({
   }
 })
 
-print("response:")
-print(response.Body)
-
 loadstring(response.Body)()
