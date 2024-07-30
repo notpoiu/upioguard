@@ -17,15 +17,21 @@ export async function GET(request: NextRequest) {
   if (project_data.project_type == "paid") {
     const key = request.headers.get("user-upioguard-key");
 
+    const error_script = kick_script("upioguard", "Invalid key provided", false, "");
+
     if (!key) {
-      return new Response(kick_script("upioguard", "Invalid key", false, ""));
+      return new Response(error_script);
     }
 
     const user_resp = await db.select().from(users).where(eq(users.key, key));
 
     if (user_resp.length == 0) {
-      return new Response(kick_script("upioguard", "Invalid key", false, ""));
+      return new Response(error_script);
     }
+
+    const user_data = user_resp[0];
+
+    if (user_data.project_id != project_data.) {
   }
 
 }

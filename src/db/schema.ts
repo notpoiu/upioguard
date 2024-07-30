@@ -3,6 +3,8 @@ import { pgTable, serial, text, timestamp, numeric, pgEnum, boolean } from "driz
 export const type = pgEnum("type", ["free","free-paywall","paid"]);
 
 export const project = pgTable("project", {
+  project_id: serial("project_id").primaryKey().notNull(),
+  
   name: text("name").notNull(),
   description: text("description").notNull(),
   creation_timestamp: timestamp("created_at").notNull().defaultNow(),
@@ -24,7 +26,7 @@ export const project_admins = pgTable("project_admins", {
 });
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey().notNull(),
+  project_id: serial("project_id").primaryKey().notNull(),
   discord_id: text("discord_id"),
   username: text("name").notNull(),
   note: text("note"),
