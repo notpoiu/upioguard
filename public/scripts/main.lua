@@ -5,9 +5,9 @@ local BASE_URL = "https://upioguard.vercel.app"
 local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request 
 
 local response = req({
-  url = BASE_URL .. "/api/script",
-  method = "GET",
-  headers = {
+  Url = BASE_URL .. "/api/script",
+  Method = "GET",
+  Headers = {
     ["user-upioguard-key"] = _G.ug_key
   }
 })
