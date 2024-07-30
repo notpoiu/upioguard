@@ -1,5 +1,7 @@
 import { pgTable, serial, text, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
 
+// Passwords are stored as SHA512 hashes with a salt (src/lib/password.ts)
+
 export const type = pgEnum("type", ["free","free-paywall","paid"]);
 
 export const projects = pgTable("projects", {

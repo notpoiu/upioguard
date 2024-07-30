@@ -37,3 +37,6 @@ next-env.d.ts
 
 # drizzle
 migrations
+
+# python utils
+output_keys.txt
