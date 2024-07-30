@@ -120,7 +120,91 @@ ${content}`);
     } catch (error) {
       return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
     }
-
   }
 
+  // handle free projects
+  if (project_data.project_type == "free-paywall") {
+    const key = request.headers.get("user-upioguard-key");
+
+    const is_discord_enabled = project_data.discord_link != null;
+    const discord_link = project_data.discord_link ?? "";
+
+    const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
+
+    let data = {
+      username: "",
+      userid: "",
+      note: "",
+      script_name: project_data.name,
+      is_premium: false,
+      expiry: "nil",
+    }
+
+    if (key) {
+      const user_resp = await db.select().from(users).where(eq(users.key, key));
+
+      if (user_resp.length == 0) {
+        return new Response(error_script);
+      }
+
+      const user_data = user_resp[0];
+
+      if (user_data.project_id != project_data.project_id) {
+        return new Response(error_script);
+      }
+  
+      if (user_data.key_expires) {
+        if (user_data.key_expires < new Date()) {
+          return new Response(kick_script("upioguard", "Key has expired", is_discord_enabled, discord_link));
+        }
+      }
+      
+      if (!user_data.hwid) {
+        await db.update(users).set({ hwid: fingerprint }).where(eq(users.key, key));
+      } else {
+        if (user_data.hwid != fingerprint) {
+          return new Response(error_script);
+        }
+      }
+
+      // Analytics
+      await collect_analytics(user_data.discord_id);
+
+      data.username = user_data.username;
+      data.userid = user_data.discord_id ?? "";
+      data.note = user_data.note ?? "";
+      data.is_premium = true;
+      data.expiry = user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil";
+    }
+
+    try {
+      const response = await octokit.repos.getContent({
+        owner: project_data.github_owner,
+        repo: project_data.github_repo,
+        path: project_data.github_path,
+      });
+
+      if (response.status !== 200) {
+          return null;
+      }
+  
+      // @ts-ignore
+      const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
+
+      return new Response(`assert(getgenv, "getgenv not found, ${project_data.name} could not be run.")
+getgenv().upioguard = {
+  username = "${data.username.replaceAll('"', '\\"')}",
+  userid = "${data.userid}",
+  note = "${data.note.replaceAll('"', '\\"')}",
+  hwid = "${fingerprint}",
+  script_name = "${project_data.name}",
+  is_premium = ${data.is_premium},
+  expiry = ${data.expiry},
+}
+
+${content}`);
+    } catch (error) {
+      return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
+    }
+  }
 }
