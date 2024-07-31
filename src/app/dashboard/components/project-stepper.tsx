@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React from "react";
-import { generate_project } from "../server";
+import { generate_project } from "../[project_id]/server";
 import { toast } from "sonner";
 
 const steps = [
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import Link from "next/link";
+import Confetti from "@/components/magicui/confetti";
 
 
 export default function ProjectCreationStepper() {
@@ -29,6 +31,7 @@ export default function ProjectCreationStepper() {
 
   const [discord_link, setDiscordLink] = React.useState("");
   const [github_url, setGithubUrl] = React.useState("");
+  const [github_token, setGithubToken] = React.useState("");
   const [is_submitting, setIsSubmitting] = React.useState(false);
   const [script_type, setScriptType] = React.useState<"paid" | "free-paywall">("paid");
 
@@ -87,18 +90,15 @@ export default function ProjectCreationStepper() {
       return;
     }
 
-    generate_project(name, description, script_type,discord_link, github_owner, github_repo, github_path).then(() => {
-      toast.success("Project created successfully, reloading page in 2 seconds...");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+    generate_project(name, description, script_type,discord_link, github_owner, github_repo, github_path, github_token).then(() => {
+      toast.success("Project created successfully!");
     }).catch((err) => {
       toast.error(err);
     });
   }
 
 	return (
-		<div className="flex w-full flex-col gap-4 mt-5">
+		<div className="flex min-w-[50vw] flex-col gap-4 mt-5">
 			<Stepper initialStep={0} steps={steps}>
         <Step label={"General"}>
           <div className="h-40 flex items-center justify-center my-2 gap-2 border bg-secondary text-primary rounded-md">
@@ -113,12 +113,16 @@ export default function ProjectCreationStepper() {
           </div>
 				</Step>
         <Step label={"Github"}>
-          <div className="h-40 flex flex-col items-center justify-center my-2 border bg-secondary text-primary rounded-md">
+          <div className="h-40 flex flex-row relative items-center justify-center my-2 border bg-secondary text-primary rounded-md">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="github_url">Github URL</Label>
               <Input id="github_url" placeholder="URL to your obfuscated script file in github (can be private)" value={github_url} onChange={(e) => setGithubUrl(e.target.value)} />
             </div>
-            <p className="text-xs text-muted-foreground mt-5">e.g: https://github.com/username/repo/blob/main/path/to/file.lua</p>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="github_token">Github Access Token</Label>
+              <Input id="github_token" placeholder="ghp_..." type="password" value={github_token} onChange={(e) => setGithubToken(e.target.value)} />
+            </div>
+            <p className="text-xs text-muted-foreground absolute bottom-0 mb-2 right-0 mr-2">e.g: https://github.com/username/repo/blob/main/path/to/file.lua</p>
           </div>
 				</Step>
         <Step label={"Miscellaneous"}>
@@ -165,8 +169,15 @@ const Footer = ({callback, reset_callback, disable_reset}: {callback: () => void
 	return (
 		<>
 			{hasCompletedAllSteps && (
-				<div className="h-40 flex items-center justify-center my-2 border bg-secondary text-primary rounded-md">
-					<h1 className="text-xl">Woohoo! All steps completed! 🎉</h1>
+				<div className="h-40 flex flex-col items-center justify-center my-2 border bg-secondary text-primary rounded-md">
+					<h1 className="text-xl">Wohoo! You created your script! 🎉</h1>
+          <p className="text-xs text-muted-foreground mt-5">You can now go to the dashboard and start using upioguard on your script.</p>
+          <Confetti className="absolute top-0 right-0 w-screen h-screen pointer-events-none"/>
+          <Link href="/dashboard" className="z-50">
+            <Button variant={"outline"} className="mt-2">
+              Go to dashboard
+            </Button>
+          </Link>
 				</div>
 			)}
 			<div className="w-full flex justify-end gap-2">

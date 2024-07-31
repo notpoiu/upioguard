@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import Navbar from "@/app/dashboard/components/navbar";
+import Navbar from "@/app/dashboard/[project_id]/components/navbar";
 import { db } from "@/db";
 import { project_admins } from "@/db/schema";
 import type { Metadata } from "next";
@@ -15,8 +15,10 @@ export const metadata: Metadata = {
 
 export default async function DashLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: { project_id: string };
 }>) {
   const session = await auth();
 
@@ -32,9 +34,9 @@ export default async function DashLayout({
 
   return (
     <div className="flex flex-row max-sm:flex-col overflow-x-hidden">
-      <Navbar user={session?.user} />
+      <Navbar user={session?.user} project_id={params.project_id} />
       <PageContainer>
-        <ProjectDataProvider>
+        <ProjectDataProvider project_id={params.project_id}>
           {children}
         </ProjectDataProvider>
       </PageContainer>

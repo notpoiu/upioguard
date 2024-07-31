@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import React from "react";
-import { useProjectData } from "../components/project_data_provider";
 
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
@@ -66,8 +65,6 @@ export default function Keys() {
   const [username, setUsername] = React.useState<string>("");
 
   const [key, setKey] = React.useState<string>("");
-
-  const { data, refresh_key } = useProjectData();
 
   return (
     <main>

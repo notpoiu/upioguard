@@ -1,10 +1,10 @@
-import { pgTable, serial, text, timestamp, numeric, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, numeric, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
 
 export const type = pgEnum("type", ["free-paywall","paid"]);
 export const key_type = pgEnum("key_type", ["temporary","permanent","checkpoint"]);
 
 export const project = pgTable("project", {
-  project_id: serial("project_id").primaryKey().notNull(),
+  project_id: text("project_id").primaryKey().notNull(),
   
   name: text("name").notNull(),
   description: text("description").notNull(),
@@ -16,14 +16,17 @@ export const project = pgTable("project", {
   github_owner: text("github_owner").notNull(),
   github_repo: text("github_repo").notNull(),
   github_path: text("github_path").notNull(),
+  github_token: text("github_token").notNull(),
 
+  
+  discord_webhook: text("discord_webhook"),
   discord_link: text("discord_link"),
 });
 
 
 export interface Project {
 
-  project_id: number;
+  project_id: string;
 
   name: string;
 
@@ -42,8 +45,10 @@ export interface Project {
   github_repo: string;
 
   github_path: string;
+  github_token: string;
 
   discord_link: string | null | undefined;
+  discord_webhook: string | null | undefined;
 
 }
 
@@ -54,7 +59,7 @@ export const project_admins = pgTable("project_admins", {
 });
 
 export const users = pgTable("users", {
-  project_id: serial("project_id").primaryKey().notNull(),
+  project_id: text("project_id").primaryKey().default("").notNull(),
   discord_id: text("discord_id").notNull(),
   username: text("name").notNull(),
   note: text("note"),
@@ -67,6 +72,7 @@ export const users = pgTable("users", {
 
 export const project_executions = pgTable("project_executions", {
   discord_id: text("discord_id"),
+  project_id: text("project_id").primaryKey().notNull(),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
 });
 

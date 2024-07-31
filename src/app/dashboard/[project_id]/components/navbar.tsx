@@ -9,12 +9,6 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
 import { BarChart2Icon, Home, KeyIcon, Settings } from "lucide-react";
 
-const pages = [
-  { name: "Home", link: "/dashboard", icon: <Home/> },
-  { name: "Keys", link: "/dashboard/keys", icon: <KeyIcon/> },
-  { name: "Analytics", link: "/dashboard/analytics", icon: <BarChart2Icon/> },
-  { name: "Settings", link: "/projects", icon: <Settings/> }
-]
 
 export const presence_colors: {[key: string]: string} = {
   "dnd": "#f04747",
@@ -23,7 +17,14 @@ export const presence_colors: {[key: string]: string} = {
   "idle": "#f0b232"
 }
 
-export default function Navbar({ user }: { user: User }) {
+export default function Navbar({ user, project_id }: { user: User, project_id: string }) {
+  const pages = [
+    { name: "Home", link: `/dashboard/${project_id}`, icon: <Home/> },
+    { name: "Keys", link: `/dashboard/${project_id}/keys`, icon: <KeyIcon/> },
+    { name: "Analytics", link: `/dashboard/${project_id}/analytics`, icon: <BarChart2Icon/> },
+    { name: "Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
+  ]
+
 
   const currentPage = usePathname();
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);

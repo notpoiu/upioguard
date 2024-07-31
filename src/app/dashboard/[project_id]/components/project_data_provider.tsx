@@ -6,7 +6,7 @@ import { get_project } from "../server";
 
 export const ProjectDataContext = createContext<{data: Project, refresh: () => void, refresh_key: number}>({
   data: {
-    project_id: 0,
+    project_id: "",
     name: "",
     description: "",
     creation_timestamp: new Date(),
@@ -17,6 +17,8 @@ export const ProjectDataContext = createContext<{data: Project, refresh: () => v
     github_repo: "",
     github_path: "",
     discord_link: "",
+    discord_webhook: "",
+    github_token: "",
   },
   refresh: () => {},
   refresh_key: 0,
@@ -24,9 +26,9 @@ export const ProjectDataContext = createContext<{data: Project, refresh: () => v
 
 export const useProjectData = () => useContext(ProjectDataContext);
 
-export default function ProjectDataProvider({ children }: { children: React.ReactNode }) {
+export default function ProjectDataProvider({ project_id, children }: { project_id: string, children: React.ReactNode }) {
   const [project_data, setProjectData] = useState<Project>({
-    project_id: 0,
+    project_id: project_id,
     name: "",
     description: "",
     creation_timestamp: new Date(),
@@ -37,12 +39,14 @@ export default function ProjectDataProvider({ children }: { children: React.Reac
     github_repo: "",
     github_path: "",
     discord_link: null,
+    discord_webhook: null,
+    github_token: "",
   });
 
   const [refresh_key, setRefreshKey] = useState(0);
 
   const fetchProjectData = () => {
-    get_project().then((project_data) => {
+    get_project(project_id).then((project_data) => {
       setProjectData(project_data);
       setRefreshKey(refresh_key + 1);
     });

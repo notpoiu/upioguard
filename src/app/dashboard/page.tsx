@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
-import GreetingDashText from "./components/greeting";
-import { db } from "@/db";
-import { project, project_admins } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import ProjectCreationStepper from "./components/project-stepper";
+import { get_projects_owned_by_user } from "./[project_id]/server";
+import { PageContainer } from "@/components/ui/page-container";
+import { User } from "next-auth";
+import Project_Navbar from "./components/projects_navbar";
 
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -13,47 +13,61 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@radix-ui/react-dropdown-menu";
-import ProjectCreationStepper from "./components/project-stepper";
-import { headers } from "next/headers";
-import CopyPasteButton from "./components/copy_component";
-
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import GreetingDashText from "./[project_id]/components/greeting";
 
 
 export default async function Dashboard() {
-  const headersList = headers();
   const session = await auth();
 
-  const project_data = await db.select().from(project).where(eq(project.author_id, session?.user?.id as string));
+  const project_data = await get_projects_owned_by_user();
   const is_project_initialized = project_data.length > 0;
   
-  return (
-    <main>
-      
-      <GreetingDashText name={session?.user?.name ?? "Anonymous"} />
-      <p>Welcome to upioguard dashboard, you are an administrator of a project.</p>
-      
-      {!is_project_initialized && (
-        <ProjectCreationStepper />
-      )}
+  if (is_project_initialized) {
+    return (
+      <div className="flex flex-row max-sm:flex-col overflow-x-hidden">
+        <Project_Navbar user={session?.user as User} projects={project_data} />
+        <PageContainer className="justify-start flex-col">
+          
+          <main>
+            <GreetingDashText name={session?.user?.name ?? "Anonymous"} />
+            <p>Welcome back to the upioguard dashboard, made with ❤️ by <Link href="https://github.com/notpoiu" target="_blank" className="text-blue-400 underline">upio</Link>.</p>
+            
+            <p>You can manage the following projects:</p>
 
-      {is_project_initialized && (
-        <>
-          <div className="relative bg-secondary text-primary rounded-md p-3 my-2 min-h-[5rem]">
-            <CopyPasteButton text={`loadstring(game:HttpGet("${process.env.NODE_ENV == "production" ? "https://" : "http://"}${headersList.get("host")}/api/script"))()`} className="absolute top-0 right-0 mt-2 mr-2" />
-            <span className="max-w-[30rem] text-wrap">loadstring(game:HttpGet(&quot;{process.env.NODE_ENV == "production" ? "https://" : "http://"}{headersList.get("host")}/api/script&quot;))()</span>
-          </div>
-        </>
-      )}
+            <div className="flex flex-wrap gap-4 mt-5">
+              {project_data.map((project) => (
+                <Card key={project.project_id} className="w-[300px]">
+                  <CardHeader>
+                    <CardTitle>{project.name}</CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter>
+                    <Link href={`/dashboard/${project.project_id}`}>
+                      <Button variant={"outline"}>Go to project</Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </main>
+          <div className="flex flex-col items-center justify-center w-full mt-auto">
+              <Link href="/dashboard/create">
+                <Button variant={"outline"}>Create a new project</Button>
+              </Link>
+            </div>
+        </PageContainer>
+      </div>
+      
+    )
+  }
+
+  return (
+    <main className="flex flex-col items-center justify-center w-screen h-screen">
+      <h1 className="text-3xl font-bold">Welcome {session?.user?.name ?? "Anonymous"}</h1>
+      <p>Set up your first script</p>
+      <ProjectCreationStepper />
     </main>
   );
 } 

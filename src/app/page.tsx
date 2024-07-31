@@ -1,5 +1,6 @@
 import { auth, signIn, signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function Home() {
   const session = await auth();
@@ -25,6 +26,12 @@ export default async function Home() {
           }}>
             <Button>Logout</Button>
           </form>
+
+          <Link href="/dashboard">
+            <Button variant={"outline"}>
+              Go to dashboard
+            </Button>
+          </Link>
         </>
       )}
     </main>

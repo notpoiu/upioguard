@@ -26,7 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false
       }
 
-      const is_first_time = process.env.IS_FIRST_TIME === "true" ? true : false;
+      const is_first_time = (await db.select().from(project_admins)).length === 0;
 
       if (is_first_time) {
         await db.insert(project_admins).values({

@@ -1,3 +1,5 @@
+// TODO: rewrite this api route
+
 import { db } from "@/db";
 import { project, project_executions, users } from "@/db/schema";
 import { kick_script } from "@/lib/luau_utils";
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   // handle paid projects (im sorry for the spaghetti code i just want to get a prototype done)
   if (project_data.project_type == "paid") {
-    const key = request.headers.get("user-upioguard-key");
+    const key = request.headers.get("upioguard-key");
 
     const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
     const discord_link = project_data.discord_link ?? "";
