@@ -15,7 +15,7 @@ _restorefunction(_restorefunction)
 _restorefunction(clonef)
 _restorefunction(cloner)
 
-local _identify_executor = clonef(identify_executor or function() return "unknown" end)
+local _identify_executor = clonef(identifyexecutor or getexecutorname or function() return "unknown" end)
 local req = clonef(_req)
 local loadstr = clonef(loadstring)
 local player = cloner(game:GetService("Players").LocalPlayer)
@@ -27,7 +27,7 @@ local _debug_info = clonef(debug.info or debug.getinfo)
 _restorefunction(_debug_info)
 _restorefunction(islclosure)
 local _islclosure = clonef(islclosure or function(f)
-  local function_data = _debug_info.getinfo(f).what
+  local function_data = _debug_info(f).what
 
   return function_data == "Lua"
 end)

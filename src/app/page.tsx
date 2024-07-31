@@ -9,11 +9,13 @@ import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 import "./gradient.css";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import NumberTicker from "@/components/magicui/number-ticker";
+import { MagicCard } from "@/components/magicui/magic-card";
 
 export default async function Home() {
   const session = await auth();
+
   return (
     <main className="flex flex-col items-center justify-center w-screen py-10">
 
@@ -45,30 +47,39 @@ export default async function Home() {
 
       <BlurFade delay={0.5} inView>
         <ShineBorder
-          className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background md:shadow-xl"
+          className="relative flex h-fit max-h-[500px] max-w-[800px] w-[90vw] flex-col items-center justify-center overflow-hidden rounded-lg border md:shadow-xl bg-[#09090B]"
           color={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
         >
-          <Image src="/dashboard.png" alt="dashboard" width={1080} height={720} className="z-10 object-contain w-full h-full" />
+          <Image src="/dashboard.png" alt="dashboard" width={1080} height={720} className="z-10 object-contain w-full max-h-[500px] h-full" />
         </ShineBorder>
       </BlurFade>
 
       <div className="mt-10 mb-5" />
 
       <BlurFade delay={0.75} inView>
-        <h1>Let&apos;s talk numbers</h1>
-      </BlurFade>
-
-      <div className="mt-5 mb-5" />
-
-      <BlurFade delay={1} inView>
           <div className="max-w-[90vw] flex flex-wrap gap-5 justify-center">
-            <BlurFade delay={1.25} inView>
-              <Card className="max-w-[300px]">
-                <CardHeader>
-                  <CardDescription>Cost of selfhosting</CardDescription>
-                  <NumberTicker delay={1.50} value={100} className="text-3xl" suffix="%" prefix="-" />
+            
+            
+            <BlurFade delay={0.75} inView>
+              <MagicCard
+                className="cursor-pointer max-w-[300px] flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
+              >
+                <CardHeader className="flex justify-center items-center flex-col">
+                    <CardDescription>Cost of selfhosting</CardDescription>
+                    <NumberTicker delay={1} value={100} className="text-3xl" suffix="%" prefix="-" />
+                  </CardHeader>
+              </MagicCard>
+            </BlurFade>
+
+            <BlurFade delay={1} inView>
+              <MagicCard
+                className="cursor-pointer max-w-[300px] flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
+              >
+                <CardHeader className="flex justify-center items-center flex-col">
+                  <CardDescription>Initial Setup Time</CardDescription>
+                  <NumberTicker delay={1.25} value={8} className="text-3xl" suffix=" min" prefix="~" />
                 </CardHeader>
-              </Card>
+              </MagicCard>
             </BlurFade>
           </div>
       </BlurFade>

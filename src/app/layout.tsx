@@ -22,7 +22,7 @@ export default function RootLayout({
       <head />
       
       <body className={cn(inter.className, "overflow-x-hidden")}>
-        <ThemeProvider attribute="class">
+        <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
           <Toaster />
         </ThemeProvider>
