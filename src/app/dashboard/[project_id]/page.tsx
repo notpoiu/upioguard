@@ -6,7 +6,7 @@ export default async function Dashboard({params}: {params: {project_id: string}}
   const session = await auth();
   return (
     <main>
-      <GreetingDashText name={session?.user?.name ?? "Anonymous"} />
+      <GreetingDashText name={session?.user?.name ?? "Anonymous"} managing={true} />
     </main>
   );
 } 
