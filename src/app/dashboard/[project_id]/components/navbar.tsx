@@ -8,6 +8,7 @@ import React from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
 import { BarChart2Icon, Home, KeyIcon, Settings } from "lucide-react";
+import { useProjectData } from "./project_data_provider";
 
 
 export const presence_colors: {[key: string]: string} = {
@@ -25,6 +26,7 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
     { name: "Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
   ]
 
+  const { data } = useProjectData();
 
   const currentPage = usePathname();
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
@@ -37,9 +39,13 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
                   <SheetTrigger><HamburgerMenuIcon className="ml-2" /></SheetTrigger>
                   <SheetContent side={"left"} className="max-w-[15rem]">
                       <SheetHeader>
-                          <SheetTitle>upioguard</SheetTitle>
+                          <SheetTitle>
+                            <Link href="/dashboard" className="text-primary hover:text-muted-foreground">
+                              upioguard
+                            </Link>
+                          </SheetTitle>
                           <SheetDescription>
-                              Navigation menu
+                             {data.name} - {data.description}
                           </SheetDescription>
                       </SheetHeader>
 
@@ -81,7 +87,12 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
 
           </div>
           <nav className="sticky top-0 left-0 flex flex-col items-center px-3 min-w-[15rem] max-w-[15rem] max-md:hidden min-h-screen border-r border-border/90 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <p className="mt-2 mb-2 text-lg font-bold">upioguard</p>
+              <p className="mt-2 text-lg font-bold">
+                <Link href="/dashboard" className="text-primary hover:text-muted-foreground">
+                  upioguard
+                </Link>
+              </p>
+              <p className="mb-5 text-sm text-muted-foreground">{data.name}</p>
               <div className="flex flex-col justify-start mr-2 *:mb-2 w-full">
                   {pages.map((page, index) => (
                       <Link key={index} href={page.link} className="flex flex-row justify-start items-center ml-[1.5rem]">

@@ -52,10 +52,15 @@ export interface Project {
 
 }
 
-export const project_admins = pgTable("project_admins", {
+export const admins = pgTable("admins", {
   discord_id: text("discord_id").primaryKey().notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+});
+
+export const project_admins = pgTable("project_admins", {
+  discord_id: text("discord_id").primaryKey().notNull(),
+  project_id: text("project_id").notNull(),
 });
 
 export const users = pgTable("users", {
@@ -75,6 +80,9 @@ export const project_executions = pgTable("project_executions", {
   project_id: text("project_id").primaryKey().notNull(),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
 });
+
+export type InsertAdmins = typeof admins.$inferInsert;
+export type SelectAdmins = typeof admins.$inferSelect;
 
 export type InsertProject = typeof project.$inferInsert;
 export type SelectProject = typeof project.$inferSelect;

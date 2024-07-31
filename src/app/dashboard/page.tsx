@@ -67,7 +67,7 @@ export default async function Dashboard() {
     <main className="flex flex-col items-center justify-center w-screen h-screen">
       <h1 className="text-3xl font-bold">Welcome {session?.user?.name ?? "Anonymous"}</h1>
       <p>Set up your first script</p>
-      <ProjectCreationStepper />
+      <ProjectCreationStepper is_first_time={true} />
     </main>
   );
 } 

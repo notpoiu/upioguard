@@ -45,6 +45,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { toast } from "sonner";
+import { useProjectData } from "../components/project_data_provider";
 
 /*
   const { 
@@ -65,6 +66,8 @@ export default function Keys() {
   const [username, setUsername] = React.useState<string>("");
 
   const [key, setKey] = React.useState<string>("");
+
+  const { data, refresh_key } = useProjectData();
 
   return (
     <main>

@@ -2,12 +2,25 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project, project_executions } from "@/db/schema";
+import { project_admins, project, project_executions } from "@/db/schema";
 import { getRandomArbitrary, randomString } from "@/lib/utils";
 import { eq, sql } from "drizzle-orm";
 
 function generate_project_id() {
   return randomString(getRandomArbitrary(15,20));
+}
+
+async function add_project_admin(project_id: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await db.insert(project_admins).values({
+    discord_id: session.user.id,
+    project_id: project_id,
+  })
 }
 
 export async function generate_project(name: string, description: string, type: "paid" | "free-paywall", discord_link: string, github_owner: string, github_repo: string, github_path: string, github_token: string) {
@@ -18,6 +31,11 @@ export async function generate_project(name: string, description: string, type: 
   }
 
   const generated_project_id = generate_project_id();
+
+  await db.insert(project_admins).values({
+    discord_id: session.user.id,
+    project_id: generated_project_id,
+  })
 
   await db.insert(project).values({
     name: name,

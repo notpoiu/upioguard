@@ -53,7 +53,10 @@ export default function ProjectDataProvider({ project_id, children }: { project_
   };
 
   useEffect(() => {
-    fetchProjectData();
+    get_project(project_id).then((project_data) => {
+      setProjectData(project_data);
+      setRefreshKey(refresh_key + 1);
+    });
   }, []);
   
   return (

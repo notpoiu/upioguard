@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Discord from "next-auth/providers/discord" 
 import { db } from "./db"
-import { project_admins, users } from "./db/schema"
+import { admins, users } from "./db/schema"
 import { eq } from "drizzle-orm"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -26,10 +26,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false
       }
 
-      const is_first_time = (await db.select().from(project_admins)).length === 0;
+      const is_first_time = (await db.select().from(admins)).length === 0;
 
       if (is_first_time) {
-        await db.insert(project_admins).values({
+        await db.insert(admins).values({
           discord_id: profile.id,
           name: user.name,
           email: profile.email,
@@ -38,9 +38,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true;
       }
 
-      const is_admin = await db.select().from(project_admins).where(eq(project_admins.discord_id, profile.id))
+      const is_admin = await db.select().from(admins).where(eq(admins.discord_id, profile.id))
       
-
       return is_admin.length > 0;
     }
   },

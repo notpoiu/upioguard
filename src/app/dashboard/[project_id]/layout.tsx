@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
 import Navbar from "@/app/dashboard/[project_id]/components/navbar";
 import { db } from "@/db";
-import { project_admins } from "@/db/schema";
+import { project_admins, admins, project } from "@/db/schema";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { PageContainer } from "@/components/ui/page-container";
 import ProjectDataProvider from "./components/project_data_provider";
 
@@ -26,7 +26,7 @@ export default async function DashLayout({
     return notFound();
   }
 
-  const is_admin = await db.select().from(project_admins).where(eq(project_admins.discord_id, session.user.id))
+  const is_admin = await db.select().from(project_admins).where(sql`${project_admins.discord_id} = ${session.user.id} AND ${project_admins.project_id} = ${params.project_id}`);
 
   if (is_admin.length === 0) {
     return notFound();
@@ -34,12 +34,12 @@ export default async function DashLayout({
 
   return (
     <div className="flex flex-row max-sm:flex-col overflow-x-hidden">
-      <Navbar user={session?.user} project_id={params.project_id} />
-      <PageContainer>
-        <ProjectDataProvider project_id={params.project_id}>
+      <ProjectDataProvider project_id={params.project_id}>
+        <Navbar user={session?.user} project_id={params.project_id} />
+        <PageContainer className="justify-start flex-col">
           {children}
-        </ProjectDataProvider>
-      </PageContainer>
+        </PageContainer>
+      </ProjectDataProvider>
     </div>
   );
 }
