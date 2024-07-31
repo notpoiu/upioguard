@@ -62,7 +62,7 @@ export default async function Home() {
             
             <BlurFade delay={0.75} inView>
               <MagicCard
-                className="cursor-pointer max-w-[300px] flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
+                className="cursor-pointer max-w-[300px] flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl min-h-[2.25rem]"
               >
                 <CardHeader className="flex justify-center items-center flex-col">
                     <CardDescription>Cost of selfhosting</CardDescription>
