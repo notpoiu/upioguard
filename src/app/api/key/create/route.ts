@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     username,
     note,
     key_expires,
-    key_type
+    key_type,
+    script_id
   } = await req.json();
 
   const session = await auth();
@@ -38,7 +39,12 @@ export async function POST(req: NextRequest) {
     key_expires = null;
   }
 
+  if (script_id == "" && !script_id) {
+    return NextResponse.json({ error: "Script ID is required" }, { status: 400 });
+  }
+
   await db.insert(users).values({
+    project_id: script_id,
     discord_id: discord_id,
     username: username,
     note: note,

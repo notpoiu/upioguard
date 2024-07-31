@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import Link from "next/link";
 import Confetti from "@/components/magicui/confetti";
+import { useRouter } from "next/navigation";
 
 
 export default function ProjectCreationStepper({is_first_time}: {is_first_time: boolean}) {
@@ -166,14 +167,17 @@ const Footer = ({callback, reset_callback, disable_reset, is_first_time}: {callb
 		isOptionalStep,
 		isDisabledStep,
 	} = useStepper();
+
+  const router = useRouter();
+
 	return (
 		<>
 			{hasCompletedAllSteps && (
 				<div className="h-40 flex flex-col items-center justify-center my-2 border bg-secondary text-primary rounded-md">
-					<h1 className="text-xl">Wohoo! You created your ${is_first_time ? "first" : ""} script! 🎉</h1>
+					<h1 className="text-xl">Wohoo! You created your {is_first_time ? "first" : ""} script! 🎉</h1>
           <p className="text-xs text-muted-foreground mt-5">You can now go to the dashboard and start using upioguard on your script.</p>
           <Confetti className="absolute top-0 right-0 w-screen h-screen pointer-events-none"/>
-          <Link href="/dashboard" onClick={() => { window.location.reload() }}>
+          <Link href="/dashboard" onClick={() => { if (is_first_time) { window.location.reload() } else {router.push("/dashboard")} }}>
             <Button variant={"outline"} className="mt-2">
               Go to dashboard
             </Button>

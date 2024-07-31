@@ -59,12 +59,12 @@ export const admins = pgTable("admins", {
 });
 
 export const project_admins = pgTable("project_admins", {
-  discord_id: text("discord_id").primaryKey().notNull(),
+  discord_id: text("discord_id").notNull(),
   project_id: text("project_id").notNull(),
 });
 
 export const users = pgTable("users", {
-  project_id: text("project_id").primaryKey().default("").notNull(),
+  project_id: text("project_id").notNull(),
   discord_id: text("discord_id").notNull(),
   username: text("name").notNull(),
   note: text("note"),

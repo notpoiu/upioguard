@@ -57,7 +57,7 @@ import { useProjectData } from "../components/project_data_provider";
   } = await req.json();
 */
 
-export default function Keys() {
+export default function Keys({params}: {params: {project_id: string}}) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [key_type, setKeyType] = React.useState<"temporary" | "permanent" | "checkpoint">("temporary");
   const [note, setNote] = React.useState<string>("");
@@ -154,6 +154,7 @@ export default function Keys() {
                     note: note,
                     key_expires: expires.toISOString(),
                     key_type: key_type,
+                    script_id: params.project_id,
                   }),
                 }).then((res) => res.json()).then((res) => {
                   if (!res.key) {

@@ -123,7 +123,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     [headers_in_use[6]]: userid,
   } = headers_dict;
 
-  if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "") {
+  if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "" ) {
     return new Response(kick_script("upioguard", "Invalid executor", false, ""));
   }
 
