@@ -2,7 +2,7 @@
 
 import { Project } from "@/db/schema";
 import { useEffect, useState, useContext, createContext } from "react";
-import { get_project } from "../server";
+import { get_project } from "../../server";
 
 export const ProjectDataContext = createContext<{data: Project, refresh: () => void, refresh_key: number}>({
   data: {

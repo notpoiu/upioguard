@@ -7,8 +7,9 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescri
 import React from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
-import { BarChart2Icon, Home } from "lucide-react";
+import { BarChart2Icon, Home, HomeIcon, Settings, Settings2Icon } from "lucide-react";
 import { Project } from "@/db/schema";
+import { Button } from "@/components/ui/button";
 
 
 export const presence_colors: {[key: string]: string} = {
@@ -39,7 +40,11 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                   <SheetTrigger><HamburgerMenuIcon className="ml-2" /></SheetTrigger>
                   <SheetContent side={"left"} className="max-w-[15rem]">
                       <SheetHeader>
-                          <SheetTitle>upioguard</SheetTitle>
+                          <SheetTitle>
+                            <Link href="/" className="text-primary hover:text-muted-foreground">
+                              upioguard
+                            </Link>
+                          </SheetTitle>
                           <SheetDescription>
                               Navigation menu
                           </SheetDescription>
@@ -73,7 +78,11 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                                           <p className="text-xs text-muted-foreground text-ellipsis overflow-hidden max-w-[4rem] text-nowrap "><span className="blur-sm">{user.email?.split("@")[0]}</span>@{user.email?.split("@")[1]}</p>
                                       </div>
                                   </div>
-                                  <ModeToggle className="ml-3"  />
+                                  <Link href="/dashboard/settings">
+                                    <Button variant={"outline"} className="ml-3" size="icon">
+                                      <Settings />
+                                    </Button>
+                                  </Link>
                               </div>
                           </div>
                       </div>
@@ -83,7 +92,11 @@ export default function Project_Navbar({ user, projects }: { user: User, project
 
           </div>
           <nav className="sticky top-0 left-0 flex flex-col items-center px-3 min-w-[15rem] max-w-[15rem] max-md:hidden min-h-screen border-r border-border/90 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <p className="mt-2 mb-2 text-lg font-bold">upioguard</p>
+              <p className="mt-2 mb-2 text-lg font-bold">
+                <Link href="/" className="text-primary hover:text-muted-foreground">
+                  upioguard
+                </Link>
+              </p>
               <div className="flex flex-col justify-start mr-2 *:mb-2 w-full">
                   {pages.map((page, index) => (
                       <Link key={index} href={page.link} className="flex flex-row justify-start items-center ml-[1.5rem]">
@@ -108,7 +121,12 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                           <p className="text-xs text-muted-foreground text-ellipsis overflow-hidden max-w-[4rem] text-nowrap "><span className="blur-sm">{user.email?.split("@")[0]}</span>@{user.email?.split("@")[1]}</p>
                       </div>
                   </div>
-                  <ModeToggle className="ml-3"  />
+                  {/* <ModeToggle className="ml-3"  />* */}
+                  <Link href="/dashboard/settings">
+                    <Button variant={"outline"} className="ml-3" size="icon">
+                      <Settings />
+                    </Button>
+                  </Link>
               </div>
           </nav>
       </>

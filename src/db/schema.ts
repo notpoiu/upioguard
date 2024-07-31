@@ -26,7 +26,16 @@ export const project = pgTable("project", {
 export const project_api_keys = pgTable("project_api_keys", {
   project_id: text("project_id").notNull(),
   api_key: text("api_key").notNull(),
+  name: text("name").notNull(),
+  creator_id: text("creator_id").notNull(),
 });
+
+export interface ProjectApiKey {
+  project_id: string;
+  api_key: string;
+  name: string;
+  creator_id: string;
+}
 
 
 export interface Project {

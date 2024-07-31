@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import ProjectCreationStepper from "./components/project-stepper";
-import { get_projects_owned_by_user } from "./[project_id]/server";
+import { get_projects_owned_by_user } from "./server";
 import { PageContainer } from "@/components/ui/page-container";
 import { User } from "next-auth";
 import Project_Navbar from "./components/projects_navbar";
@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import GreetingDashText from "./[project_id]/components/greeting";
+import BlurFade from "@/components/magicui/blur-fade";
 
 
 export default async function Dashboard() {
@@ -37,18 +38,20 @@ export default async function Dashboard() {
             <p>You can manage the following projects:</p>
 
             <div className="flex flex-wrap gap-4 mt-5">
-              {project_data.map((project) => (
-                <Card key={project.project_id} className="w-[300px]">
-                  <CardHeader>
-                    <CardTitle>{project.name}</CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Link href={`/dashboard/${project.project_id}`}>
-                      <Button variant={"outline"}>Go to project</Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
+              {project_data.map((project, index) => (
+                <BlurFade delay={0.25 * index} inView key={project.project_id}>                                
+                  <Card key={project.project_id} className="w-[300px]">
+                    <CardHeader>
+                      <CardTitle>{project.name}</CardTitle>
+                      <CardDescription>{project.description}</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Link href={`/dashboard/${project.project_id}`}>
+                        <Button variant={"outline"}>Go to project</Button>
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                </BlurFade>
               ))}
             </div>
           </main>

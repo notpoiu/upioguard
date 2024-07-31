@@ -3,7 +3,7 @@ import GreetingDashText from "./components/greeting";
 import { headers } from "next/headers";
 import CopyPasteButton from "./components/copy_component";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { get_project, get_project_executions } from "./server";
+import { get_project, get_project_executions } from "../server";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";

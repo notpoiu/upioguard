@@ -6,7 +6,7 @@ import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
-import { get_project } from "@/app/dashboard/[project_id]/server";
+import { get_project } from "@/app/dashboard/server";
 import { sql } from "drizzle-orm";
 
 /*

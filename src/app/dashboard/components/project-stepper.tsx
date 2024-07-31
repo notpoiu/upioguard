@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React from "react";
-import { generate_project } from "../[project_id]/server";
+import { generate_project } from "../server";
 import { toast } from "sonner";
 
 const steps = [
