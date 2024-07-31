@@ -35,16 +35,100 @@ function get_hwid(headersList: Headers) {
   return fingerprint;
 }
 
-async function collect_analytics(project_id: string,discord_id?: string | null) {
+async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
+  if (webhook_url) {
+    const response = await fetch(webhook_url, {
+      method: "POST",
+      body: JSON.stringify({
+        "content": null,
+        "embeds": [
+          {
+            "title": `${webhook_data.username} has ran script successsfully`,
+            "color": 6291288,
+            "fields": [
+              {
+                "name": "Roblox Info",
+                "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.userid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
+                "inline": true
+              },
+              {
+                "name": "Roblox Links",
+                "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + webhook_data.rbxlplaceid + "&jobId=" + webhook_data.rbxljobid + ")\n[View roblox profile](https://www.roblox.com/users/" + webhook_data.userid + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + webhook_data.rbxlplaceid + "/" + webhook_data.rbxlgamename + ")",
+                "inline": true
+              },
+              {
+                "name": "Request Data",
+                "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n}\n\n```"
+              },
+              {
+                "name": "Discord Data",
+                "value": "<@" + webhook_data.userid + "> (" + webhook_data.username + " - " + webhook_data.userid + ")",
+                "inline": true
+              }
+            ]
+          }
+        ],
+        "attachments": []
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.log("Failed to send webhook");
+    }
+  }
+
   await db.insert(project_executions).values({ discord_id: discord_id, project_id: project_id });
 }
 
+function validate_header(header_key: string, headers_dict: any) {
+
+  if (!headers_dict[header_key]) {
+    return false;
+  }
+
+  const header_value = headers_dict[header_key];
+  if (header_value.trim() == "not found" || header_value.trim() == "") {
+    return false;
+  }
+
+  return true;
+}
+
+const headers_in_use = [
+  "upioguard-key",
+  "upioguard-rbxlusername",
+  "upioguard-rbxlplaceid",
+  "upioguard-rbxljobid",
+  "upioguard-rbxlgamename",
+  "upioguard-executor"
+]
+
 export async function GET(request: NextRequest, {params}: {params: {project_id: string}}) {
-  // Fetch HWID
+  const headers_dict = Object.fromEntries(request.headers.entries());
+
   const fingerprint = get_hwid(request.headers);
+
+  // im sorry
+  const {
+    [headers_in_use[0]]: key,
+    [headers_in_use[1]]: username,
+    [headers_in_use[2]]: placeid,
+    [headers_in_use[3]]: jobid,
+    [headers_in_use[4]]: gamename,
+    [headers_in_use[5]]: executor,
+  } = headers_dict;
 
   if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "") {
     return new Response(kick_script("upioguard", "Invalid executor", false, ""));
+  }
+
+  for (const header_key of headers_in_use) {
+    if (!validate_header(header_key, headers_dict)) {
+      return new Response(kick_script("upioguard", "Invalid header provided", false, ""));
+    }
   }
 
   // Get Project Data
@@ -62,8 +146,6 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
 
   // handle paid projects (im sorry for the spaghetti code i just want to get a prototype done)
   if (project_data.project_type == "paid") {
-    const key = request.headers.get("upioguard-key");
-
     const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
     const discord_link = project_data.discord_link ?? "";
 
@@ -100,7 +182,19 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     }
 
     // Analytics
-    await collect_analytics(project_data.project_id, user_data.discord_id);
+    await collect_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
+      username: user_data.username,
+      userid: user_data.discord_id,
+      hwid: fingerprint,
+      script_name: project_data.name,
+      is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
+      expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
+      rbxlusername: username,
+      rbxlplaceid: placeid,
+      rbxljobid: jobid,
+      rbxlgamename: gamename,
+      executor: executor,
+    });
 
     try {
       const response = await octokit.repos.getContent({
@@ -135,8 +229,6 @@ ${content}`);
 
   // handle free projects
   if (project_data.project_type == "free-paywall") {
-    const key = request.headers.get("user-upioguard-key");
-
     const is_discord_enabled = project_data.discord_link != null;
     const discord_link = project_data.discord_link ?? "";
 
@@ -189,7 +281,19 @@ ${content}`);
       }
 
       // Analytics
-      await collect_analytics(project_data.project_id, user_data.discord_id);
+      await collect_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
+        username: data.username,
+        userid: data.userid,
+        hwid: fingerprint,
+        script_name: project_data.name,
+        is_premium: data.is_premium,
+        expiry: data.expiry,
+        rbxlusername: username,
+        rbxlplaceid: placeid,
+        rbxljobid: jobid,
+        rbxlgamename: gamename,
+        executor: executor,
+      });
     }
 
     try {
