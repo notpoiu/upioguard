@@ -60,6 +60,12 @@ if (is_tampered_with(req) or is_tampered_with(_req)) then
   assert(false, "req/req tampered with")
 end
 
+local InputService = cloner(game:GetService("UserInputService"))
+
+local DeviceInfo = {}
+
+pcall(function() DeviceInfo.DevicePlatform = InputService:GetPlatform(); end);
+DeviceInfo.IsMobile = (DeviceInfo.DevicePlatform == Enum.Platform.Android or DeviceInfo.DevicePlatform == Enum.Platform.IOS);
 
 local response = req({
   Url = "${origin}/api/script/${script_id}",
@@ -72,6 +78,7 @@ local response = req({
     ["upioguard-rbxluserid"] = player.UserId,
     ["upioguard-rbxlgamename"] = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", ""),
     ["upioguard-executor"] = _identify_executor(),
+    ["upioguard-ismobile"] = DeviceInfo.IsMobile,
   }
 })
 

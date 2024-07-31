@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, numeric, pgEnum, boolean, integer } from "dri
 
 export const type = pgEnum("type", ["free-paywall","paid"]);
 export const key_type = pgEnum("key_type", ["temporary","permanent","checkpoint"]);
+export const execution_type = pgEnum("execution_type", ["mobile","desktop","unknown"]);
 
 export const project = pgTable("project", {
   project_id: text("project_id").primaryKey().notNull(),
@@ -91,8 +92,9 @@ export const users = pgTable("users", {
 
 export const project_executions = pgTable("project_executions", {
   discord_id: text("discord_id"),
-  project_id: text("project_id").primaryKey().notNull(),
+  project_id: text("project_id").notNull(),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
+  execution_type: execution_type("execution_type").notNull(),
 });
 
 export type InsertProjectApiKey = typeof project_api_keys.$inferInsert;

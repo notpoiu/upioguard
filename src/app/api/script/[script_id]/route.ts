@@ -58,7 +58,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
               },
               {
                 "name": "Request Data",
-                "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n}\n\n```"
+                "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n  \"is_mobile\": " + webhook_data.is_mobile + "\n}\n\n```"
               },
               {
                 "name": "Discord Data",
@@ -80,7 +80,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
     }
   }
 
-  await db.insert(project_executions).values({ discord_id: discord_id, project_id: project_id });
+  await db.insert(project_executions).values({ discord_id: discord_id, project_id: project_id, execution_type: webhook_data.is_mobile ? "mobile" : "desktop" });
 }
 
 function validate_header(header_key: string, headers_dict: any) {
@@ -105,6 +105,7 @@ const headers_in_use = [
   "upioguard-rbxlgamename",
   "upioguard-executor",
   "upioguard-rbxluserid",
+  "upioguard-ismobile"
 ]
 
 export async function GET(request: NextRequest, {params}: {params: {project_id: string}}) {
@@ -113,7 +114,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
   const fingerprint = get_hwid(request.headers);
 
   // im sorry
-  const {
+  let {
     [headers_in_use[0]]: key,
     [headers_in_use[1]]: username,
     [headers_in_use[2]]: placeid,
@@ -121,6 +122,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     [headers_in_use[4]]: gamename,
     [headers_in_use[5]]: executor,
     [headers_in_use[6]]: userid,
+    [headers_in_use[7]]: is_mobile,
   } = headers_dict;
 
   if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "" ) {
@@ -197,6 +199,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
       rbxljobid: jobid,
       rbxlgamename: gamename,
       executor: executor,
+      is_mobile: is_mobile,
     });
 
     try {
@@ -297,6 +300,7 @@ ${content}`);
         rbxlgamename: gamename,
         rbxluserid: userid,
         executor: executor,
+        ismobile: is_mobile,
       });
     }
 

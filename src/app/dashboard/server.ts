@@ -191,3 +191,31 @@ export async function get_project_executions(project_id: string) {
   const project_data = await db.select().from(project_executions).where(sql`${project_executions.project_id} = ${project_id}`);
   return project_data;
 }
+
+export async function fetch_project_executions(project_id: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  const project_data = await db.select().from(project_executions).where(sql`${project_executions.project_id} = ${project_id}`);
+
+  let organized_data: any[] = [];
+  for (const execution of project_data) {
+    const date = execution.execution_timestamp.toISOString().split("T")[0];
+    if (!organized_data.find((data) => data.date === date)) {
+      organized_data.push({ date: date, desktop: 0, mobile: 0 });
+    }
+
+    if (execution.execution_type === "desktop") {
+      organized_data.find((data) => data.date === date).desktop += 1;
+    } else if (execution.execution_type === "mobile") {
+      organized_data.find((data) => data.date === date).mobile += 1;
+    }
+  }
+
+  return organized_data;
+}
