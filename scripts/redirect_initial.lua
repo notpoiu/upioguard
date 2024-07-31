@@ -62,7 +62,7 @@ end
 
 
 local response = req({
-  Url = "https://upioguard.vercel.app/api/script/${script_id}",
+  Url = "${origin}/api/script/${script_id}",
   Method = "GET",
   Headers = {
     ["upioguard-key"] = _G.ug_key,

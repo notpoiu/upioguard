@@ -23,6 +23,11 @@ export const project = pgTable("project", {
   discord_link: text("discord_link"),
 });
 
+export const project_api_keys = pgTable("project_api_keys", {
+  project_id: text("project_id").notNull(),
+  api_key: text("api_key").notNull(),
+});
+
 
 export interface Project {
 
@@ -80,6 +85,9 @@ export const project_executions = pgTable("project_executions", {
   project_id: text("project_id").primaryKey().notNull(),
   execution_timestamp: timestamp("execution_timestamp").notNull().defaultNow(),
 });
+
+export type InsertProjectApiKey = typeof project_api_keys.$inferInsert;
+export type SelectProjectApiKey = typeof project_api_keys.$inferSelect;
 
 export type InsertAdmins = typeof admins.$inferInsert;
 export type SelectAdmins = typeof admins.$inferSelect;
