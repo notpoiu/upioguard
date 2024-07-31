@@ -53,13 +53,22 @@ export default async function Dashboard() {
                   </Card>
                 </BlurFade>
               ))}
+
+              <BlurFade delay={0.25 * project_data.length} inView>                                
+                <Card className="w-[300px]">
+                  <CardHeader>
+                    <CardTitle>Create a new Script</CardTitle>
+                    <CardDescription>Press the button below to start</CardDescription>
+                  </CardHeader>
+                  <CardFooter>
+                    <Link href="/dashboard/create">
+                      <Button>Create Script</Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              </BlurFade>
             </div>
           </main>
-          <div className="flex flex-col items-center justify-center w-full mt-auto">
-              <Link href="/dashboard/create">
-                <Button variant={"outline"}>Create a new project</Button>
-              </Link>
-            </div>
         </PageContainer>
       </div>
       

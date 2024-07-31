@@ -7,9 +7,11 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescri
 import React from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
-import { BarChart2Icon, Home, HomeIcon, Settings, Settings2Icon } from "lucide-react";
+import { BarChart2Icon, Home, HomeIcon, PlusIcon, Settings, Settings2Icon } from "lucide-react";
 import { Project } from "@/db/schema";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 
 export const presence_colors: {[key: string]: string} = {
@@ -19,11 +21,21 @@ export const presence_colors: {[key: string]: string} = {
   "idle": "#f0b232"
 }
 
+interface Page {
+  name: string;
+  link: string;
+  icon: React.ReactNode;
+  className?: string;
+}
+
 export default function Project_Navbar({ user, projects }: { user: User, projects: Project[] }) {
 
-  const pages = [
+  const static_pages = [
     { name: "Home", link: "/dashboard", icon: <Home/> },
+    { name: "Settings", link: "/dashboard/settings", icon: <Settings/> },
   ]
+
+  const pages: Page[] = [{ name: "Create Script", link: "/dashboard/create", icon: <PlusIcon/>, className: "mb-2 items-start font-semibold" }];
 
   projects.forEach((project) => {
     pages.push({ name: project.name, link: `/dashboard/${project.project_id}`, icon: <BarChart2Icon/> })
@@ -51,12 +63,23 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                       </SheetHeader>
 
                       <div className="flex flex-col justify-center md:justify-start *:mb-2 w-full mt-4">
-                          {pages.map((page, index) => (
+                          {static_pages.map((page, index) => (
                               <Link key={index} href={page.link} className="flex flex-row justify-center md:justify-start items-center" onClick={() => {
                                   setIsSheetOpen(false);
                               }}>
                                   {page.icon}
                                   <p className={`${currentPage === page.link ? "font-bold" : ""} ml-4`}>{page.name}</p>
+                              </Link>
+                          ))}
+
+                          <Separator className="mt-1 mb-3" />
+                          
+                          {pages.map((page, index) => (
+                              <Link key={index} href={page.link} className={cn("flex flex-row justify-center md:justify-start items-center", page.className)} onClick={() => {
+                                  setIsSheetOpen(false);
+                              }}>
+                                  {page.icon}
+                                  <p className={cn(`${currentPage === page.link ? "font-bold" : ""} ml-4`, page.className)}>{page.name}</p>
                               </Link>
                           ))}
                       </div>
@@ -98,10 +121,18 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                 </Link>
               </p>
               <div className="flex flex-col justify-start mr-2 *:mb-2 w-full">
-                  {pages.map((page, index) => (
+                  {static_pages.map((page, index) => (
                       <Link key={index} href={page.link} className="flex flex-row justify-start items-center ml-[1.5rem]">
                           {page.icon}
                           <p className={`${currentPage === page.link ? "font-bold" : ""} ml-4`}>{page.name}</p>
+                      </Link>
+                  ))}
+
+                  <Separator className="mt-1 mb-3" />
+                  {pages.map((page, index) => (
+                      <Link key={index} href={page.link} className={cn("flex flex-row justify-start items-center ml-[1.5rem]", page.className)}>
+                          {page.icon}
+                          <p className={cn(`${currentPage === page.link ? "font-bold" : ""} ml-4`, page.className)}>{page.name}</p>
                       </Link>
                   ))}
               </div>
