@@ -24,7 +24,7 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
     { name: "Home", link: `/dashboard/${project_id}`, icon: <Home/> },
     { name: "Keys", link: `/dashboard/${project_id}/keys`, icon: <KeyIcon/> },
     { name: "Analytics", link: `/dashboard/${project_id}/analytics`, icon: <BarChart2Icon/> },
-    { name: "Project Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
+    { name: "Script Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
   ]
 
   const { data } = useProjectData();

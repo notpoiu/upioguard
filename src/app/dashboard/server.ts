@@ -2,9 +2,9 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey } from "@/db/schema";
+import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project } from "@/db/schema";
 import { getRandomArbitrary, randomString } from "@/lib/utils";
-import { eq, sql } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 
 function generate_project_id() {
   return randomString(getRandomArbitrary(15,20));
@@ -179,7 +179,7 @@ export async function get_project(project_id: string) {
   return project_data[0];
 }
 
-export async function get_project_executions(project_id: string) {
+export async function get_total_executions(project_id: string) {
   const session = await auth();
 
   if (session?.user?.id === undefined) {
@@ -188,7 +188,7 @@ export async function get_project_executions(project_id: string) {
 
   await validate_permissions(project_id);
 
-  const project_data = await db.select().from(project_executions).where(sql`${project_executions.project_id} = ${project_id}`);
+  const project_data = await db.select( { count: count() }).from(project_executions).where(sql`${project_executions.project_id} = ${project_id}`);
   return project_data;
 }
 
@@ -218,4 +218,31 @@ export async function fetch_project_executions(project_id: string) {
   }
 
   return organized_data;
+}
+
+export async function update_project(project_id: string, data: Project) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.update(project).set(data).where(eq(project.project_id, project_id));
+}
+
+export async function delete_project(project_id: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.delete(project).where(eq(project.project_id, project_id));
+  await db.delete(project_executions).where(eq(project_executions.project_id, project_id));
+  await db.delete(project_api_keys).where(eq(project_api_keys.project_id, project_id));
+  await db.delete(project_admins).where(eq(project_admins.project_id, project_id));
 }

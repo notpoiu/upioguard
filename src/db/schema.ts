@@ -11,7 +11,6 @@ export const project = pgTable("project", {
   description: text("description").notNull(),
   creation_timestamp: timestamp("created_at").notNull().defaultNow(),
   author_id: text("author_id").notNull(),
-  total_executions: numeric("total_executions").notNull().default("0"),
   project_type: type("project_type").notNull().default("paid"),
 
   github_owner: text("github_owner").notNull(),
@@ -19,6 +18,8 @@ export const project = pgTable("project", {
   github_path: text("github_path").notNull(),
   github_token: text("github_token").notNull(),
 
+  // in minutes
+  linkvertise_key_duration: numeric("linkvertise_key_duration").notNull().default("1"),
   
   discord_webhook: text("discord_webhook"),
   discord_link: text("discord_link"),
@@ -38,27 +39,21 @@ export interface ProjectApiKey {
   creator_id: string;
 }
 
+// TODO: add checkpoints table
+
 
 export interface Project {
-
   project_id: string;
-
   name: string;
-
   description: string;
-
   creation_timestamp: Date;
-
   author_id: string;
-
   total_executions: string;
-
+  linkvertise_key_duration: string;
   project_type: "free-paywall" | "paid";
 
   github_owner: string;
-
   github_repo: string;
-
   github_path: string;
   github_token: string;
 
