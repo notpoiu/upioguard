@@ -48,7 +48,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
             "fields": [
               {
                 "name": "Roblox Info",
-                "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.userid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
+                "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
                 "inline": true
               },
               {
@@ -103,7 +103,8 @@ const headers_in_use = [
   "upioguard-rbxlplaceid",
   "upioguard-rbxljobid",
   "upioguard-rbxlgamename",
-  "upioguard-executor"
+  "upioguard-executor",
+  "upioguard-rbxluserid",
 ]
 
 export async function GET(request: NextRequest, {params}: {params: {project_id: string}}) {
@@ -119,6 +120,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     [headers_in_use[3]]: jobid,
     [headers_in_use[4]]: gamename,
     [headers_in_use[5]]: executor,
+    [headers_in_use[6]]: userid,
   } = headers_dict;
 
   if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "") {
@@ -190,6 +192,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
       is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
       expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
       rbxlusername: username,
+      rbxluserid: userid,
       rbxlplaceid: placeid,
       rbxljobid: jobid,
       rbxlgamename: gamename,
@@ -292,6 +295,7 @@ ${content}`);
         rbxlplaceid: placeid,
         rbxljobid: jobid,
         rbxlgamename: gamename,
+        rbxluserid: userid,
         executor: executor,
       });
     }
