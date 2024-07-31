@@ -1,0 +1,29 @@
+:root {
+  --purple: rgb(123, 31, 162);
+  --violet: rgb(103, 58, 183);
+  --pink: rgb(244, 143, 177);
+}
+
+.magic-text {
+  animation: background-pan 3s linear infinite;
+  background: linear-gradient(
+      to right,
+      var(--purple),
+      var(--violet),
+      var(--pink),
+      var(--purple)
+  );
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes background-pan {
+  from {
+      background-position: 0% center;
+  }
+
+  to {
+      background-position: -200% center;
+  }
+}

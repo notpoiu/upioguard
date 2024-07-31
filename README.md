@@ -31,6 +31,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy is using vercel.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+postgres included in template:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotpoiu%2Fupioguard.git&env=AUTH_SECRET,AUTH_DISCORD_ID,AUTH_DISCORD_SECRET&envDescription=Auth.js%20required%20secrets%2C%20to%20generate%20AUTH_SECRET%2C%20run%20this%20command%20in%20terminal%3A%20%60openssl%20rand%20-base64%2033%60%20And%20Discord_ID%20and%20Discord_Secret%20are%20from%20a%20oauth%20application%20made%20in%20discord%20developer%20portal&demo-title=upioguard&demo-description=a%20lua%20script%20protection%20service&demo-url=https%3A%2F%2Fupioguard.vercel.app&stores=%5B%7B%22type%22%3A%22postgres%22%7D%5D)
+
+without postgres included in template:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotpoiu%2Fupioguard.git&env=AUTH_SECRET,AUTH_DISCORD_ID,AUTH_DISCORD_SECRET&envDescription=Auth.js%20required%20secrets%2C%20to%20generate%20AUTH_SECRET%2C%20run%20this%20command%20in%20terminal%3A%20%60openssl%20rand%20-base64%2033%60%20And%20Discord_ID%20and%20Discord_Secret%20are%20from%20a%20oauth%20application%20made%20in%20discord%20developer%20portal&demo-title=upioguard&demo-description=a%20lua%20script%20protection%20service&demo-url=https%3A%2F%2Fupioguard.vercel.app)

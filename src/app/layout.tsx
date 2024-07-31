@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       
-      <body className={inter.className}>
+      <body className={cn(inter.className, "overflow-x-hidden")}>
         <ThemeProvider attribute="class">
           {children}
           <Toaster />
