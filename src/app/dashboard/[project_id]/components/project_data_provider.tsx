@@ -11,7 +11,6 @@ export const ProjectDataContext = createContext<{data: Project, refresh: () => v
     description: "",
     creation_timestamp: new Date(),
     author_id: "",
-    total_executions: "0",
     project_type: "paid",
     github_owner: "",
     github_repo: "",
@@ -19,7 +18,7 @@ export const ProjectDataContext = createContext<{data: Project, refresh: () => v
     discord_link: "",
     discord_webhook: "",
     github_token: "",
-    linkvertise_key_duration: 1,
+    linkvertise_key_duration: "1",
   },
   refresh: () => {},
   refresh_key: 0,
@@ -34,7 +33,6 @@ export default function ProjectDataProvider({ project_id, children }: { project_
     description: "",
     creation_timestamp: new Date(),
     author_id: "",
-    total_executions: "0",
     project_type: "paid",
     github_owner: "",
     github_repo: "",
@@ -42,7 +40,7 @@ export default function ProjectDataProvider({ project_id, children }: { project_
     discord_link: null,
     discord_webhook: null,
     github_token: "",
-    linkvertise_key_duration: Number("1"),
+    linkvertise_key_duration: "1",
   });
 
   const [refresh_key, setRefreshKey] = useState(0);
