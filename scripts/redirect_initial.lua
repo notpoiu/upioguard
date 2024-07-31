@@ -52,8 +52,8 @@ if (is_tampered_with(clonef) or is_tampered_with(cloner) or is_tampered_with(clo
   assert(false, "clonef/cloner/clonefunction/cloneref tampered with")
 end
 
-if (is_tampered_with(restorefunction) or is_tampered_with(restoreref) or is_tampered_with(restorefunction)) then
-  assert(false, "restorefunction/restoreref/restorefunction tampered with")
+if (is_tampered_with(restorefunction)) then
+  assert(false, "restorefunction tampered with")
 end
 
 if (is_tampered_with(req) or is_tampered_with(_req)) then
