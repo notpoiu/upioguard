@@ -7,7 +7,7 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescri
 import React from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
-import { BarChart2Icon, Home, HomeIcon, PlusIcon, Settings, Settings2Icon } from "lucide-react";
+import { BarChart2Icon, Home, HomeIcon, LayoutDashboard, PanelsLeftBottom, PanelsRightBottom, PanelsTopBottom, PanelsTopLeft, PlusIcon, Settings, Settings2Icon } from "lucide-react";
 import { Project } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -35,10 +35,10 @@ export default function Project_Navbar({ user, projects }: { user: User, project
     { name: "Settings", link: "/dashboard/settings", icon: <Settings/> },
   ]
 
-  const pages: Page[] = [{ name: "Create Script", link: "/dashboard/create", icon: <PlusIcon/>, className: "mb-2 items-start font-semibold" }];
+  const pages: Page[] = [{ name: "Create Script", link: "/dashboard/create", icon: <PlusIcon/>, className: "items-start font-semibold" }];
 
   projects.forEach((project) => {
-    pages.push({ name: project.name, link: `/dashboard/${project.project_id}`, icon: <BarChart2Icon/> })
+    pages.push({ name: project.name, link: `/dashboard/${project.project_id}`, icon: <PanelsTopLeft/> })
   })
 
   const currentPage = usePathname();
@@ -129,12 +129,14 @@ export default function Project_Navbar({ user, projects }: { user: User, project
                   ))}
 
                   <Separator className="mt-1 mb-3" />
-                  {pages.map((page, index) => (
-                      <Link key={index} href={page.link} className={cn("flex flex-row justify-start items-center ml-[1.5rem]", page.className)}>
-                          {page.icon}
-                          <p className={cn(`${currentPage === page.link ? "font-bold" : ""} ml-4`, page.className)}>{page.name}</p>
-                      </Link>
-                  ))}
+                  <div className="flex flex-col justify-start mr-2 *:mb-3 w-full">
+                      {pages.map((page, index) => (
+                          <Link key={index} href={page.link} className={cn("flex flex-row justify-start items-center ml-[1.5rem]", page.className)}>
+                              {page.icon}
+                              <p className={cn(`${currentPage === page.link ? "font-bold" : ""} ml-4`, page.className)}>{page.name}</p>
+                          </Link>
+                      ))}
+                  </div>
               </div>
 
               <div className="rounded border border-border justify-center items-center flex-row flex px-2 mb-3 mt-auto">
