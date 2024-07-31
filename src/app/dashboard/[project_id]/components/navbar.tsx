@@ -9,6 +9,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
 import { BarChart2Icon, Home, KeyIcon, Settings } from "lucide-react";
 import { useProjectData } from "./project_data_provider";
+import { Button } from "@/components/ui/button";
 
 
 export const presence_colors: {[key: string]: string} = {
@@ -23,7 +24,7 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
     { name: "Home", link: `/dashboard/${project_id}`, icon: <Home/> },
     { name: "Keys", link: `/dashboard/${project_id}/keys`, icon: <KeyIcon/> },
     { name: "Analytics", link: `/dashboard/${project_id}/analytics`, icon: <BarChart2Icon/> },
-    { name: "Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
+    { name: "Project Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
   ]
 
   const { data } = useProjectData();
@@ -77,7 +78,11 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
                                           <p className="text-xs text-muted-foreground text-ellipsis overflow-hidden max-w-[4rem] text-nowrap">{user.email}</p>
                                       </div>
                                   </div>
-                                  <ModeToggle className="ml-3"  />
+                                  <Link href="/dashboard/settings">
+                                    <Button variant={"outline"} className="ml-3" size="icon">
+                                      <Settings />
+                                    </Button>
+                                  </Link>
                               </div>
                           </div>
                       </div>
@@ -117,7 +122,11 @@ export default function Navbar({ user, project_id }: { user: User, project_id: s
                           <p className="text-xs text-muted-foreground text-ellipsis overflow-hidden max-w-[4rem] text-nowrap">{user.email}</p>
                       </div>
                   </div>
-                  <ModeToggle className="ml-3"  />
+                  <Link href="/dashboard/settings">
+                    <Button variant={"outline"} className="ml-3" size="icon">
+                      <Settings />
+                    </Button>
+                  </Link>
               </div>
           </nav>
       </>

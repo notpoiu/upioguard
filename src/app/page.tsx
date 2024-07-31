@@ -28,7 +28,7 @@ export default async function Home() {
               )}
             >
               <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
-                <GitHubLogoIcon className="mr-1 size-3 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                <GitHubLogoIcon className="mr-1 size-3" />
                 <span>upioguard is open source</span>
               </AnimatedShinyText>
             </div>
