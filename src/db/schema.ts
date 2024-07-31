@@ -48,7 +48,6 @@ export interface Project {
   description: string;
   creation_timestamp: Date;
   author_id: string;
-  total_executions: string;
   linkvertise_key_duration: string;
   project_type: "free-paywall" | "paid";
 
