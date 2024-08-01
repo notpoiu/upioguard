@@ -206,8 +206,8 @@ export default function Settings({params}: {params: {project_id: string}}) {
                         success: () => {
                           setTimeout(() => {
                             router.push("/dashboard");
-                          }, 1000);
-                          return "Project deleted, redirecting back to dashboard...";
+                          }, 3000);
+                          return "Project deleted, redirecting in 3s back to dashboard...";
                         },
                         error: "Failed to delete project",
                       })}}>Continue</AlertDialogAction>

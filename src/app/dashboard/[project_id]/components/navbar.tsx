@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { HamburgerMenuIcon} from "@radix-ui/react-icons";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import React from "react";
-import { ModeToggle } from "@/components/mode-toggle";
 import { User } from "next-auth";
 import { BarChart2Icon, Home, KeyIcon, Settings } from "lucide-react";
 import { useProjectData } from "./project_data_provider";

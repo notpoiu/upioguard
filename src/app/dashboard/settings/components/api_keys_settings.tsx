@@ -22,7 +22,6 @@ import React from "react";
 import { toast } from "sonner";
 import { create_api_key, delete_api_keys, get_api_keys_from_projects_owned_by_user } from "../../server";
 import { DataTable } from "./api_keys_table/data-table";
-import { columns } from "./api_keys_table/columns";
 
 export default function ApiKeysSettings({projects}: {projects: Project[]}) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);

@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project } from "@/db/schema";
+import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project, users } from "@/db/schema";
 import { getRandomArbitrary, randomString } from "@/lib/utils";
 import { count, eq, sql } from "drizzle-orm";
 
@@ -203,21 +203,7 @@ export async function fetch_project_executions(project_id: string) {
 
   const project_data = await db.select().from(project_executions).where(sql`${project_executions.project_id} = ${project_id}`);
 
-  let organized_data: any[] = [];
-  for (const execution of project_data) {
-    const date = execution.execution_timestamp.toISOString().split("T")[0];
-    if (!organized_data.find((data) => data.date === date)) {
-      organized_data.push({ date: date, desktop: 0, mobile: 0 });
-    }
-
-    if (execution.execution_type === "desktop") {
-      organized_data.find((data) => data.date === date).desktop += 1;
-    } else if (execution.execution_type === "mobile") {
-      organized_data.find((data) => data.date === date).mobile += 1;
-    }
-  }
-
-  return organized_data;
+  return project_data;
 }
 
 export async function update_project(project_id: string, data: Project) {
@@ -245,4 +231,18 @@ export async function delete_project(project_id: string) {
   await db.delete(project_executions).where(eq(project_executions.project_id, project_id));
   await db.delete(project_api_keys).where(eq(project_api_keys.project_id, project_id));
   await db.delete(project_admins).where(eq(project_admins.project_id, project_id));
+  await db.delete(users).where(eq(users.project_id, project_id));
+}
+
+export async function get_script_keys(project_id: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  const project_data = await db.select().from(project_api_keys).where(eq(project_api_keys.project_id, project_id));
+  return project_data;
 }

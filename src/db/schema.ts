@@ -84,6 +84,18 @@ export const users = pgTable("users", {
   executor: text("executor"),
 });
 
+export interface Key {
+  project_id: string;
+  key: string;
+  key_expires: Date | null;
+  key_type: "temporary" | "permanent" | "checkpoint";
+  discord_id: string;
+  username: string;
+  note: string | null;
+  hwid: string | null;
+  executor: string | null;
+}
+
 export const project_executions = pgTable("project_executions", {
   discord_id: text("discord_id"),
   project_id: text("project_id").notNull(),
