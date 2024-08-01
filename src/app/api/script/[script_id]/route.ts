@@ -84,7 +84,19 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
     console.error("Failed to send webhook, error: ", error," webhook_url: ", webhook_url);
   }
 
-  await db.insert(project_executions).values({ discord_id: discord_id, project_id: project_id, execution_type: webhook_data.is_mobile ? "mobile" : "desktop" });
+  try {
+    await db.insert(project_executions).values({
+      discord_id: discord_id,
+      project_id: project_id,
+      execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
+    });
+  } catch (error) {
+    console.error("Failed to insert project execution, error: ", error, " dump: ", JSON.stringify({
+      discord_id: discord_id,
+      project_id: project_id,
+      execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
+    }));
+  }
 }
 
 function validate_header(header_key: string, headers_dict: any) {
