@@ -9,6 +9,7 @@ import { Octokit } from "@octokit/rest";
 import { get_project } from "@/app/dashboard/server";
 import { sql } from "drizzle-orm";
 import { sql as vercelSQL } from "@vercel/postgres";
+import { log } from "@/lib/log";
 
 /*
 
@@ -101,7 +102,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     }).toSQL();
 
-    console.log(sql_query.sql);
+    log(sql_query.sql);
 
     await vercelSQL`INSERT INTO project_executions (discord_id, project_id, execution_type) VALUES (${discord_id}, ${project_id}, ${(webhook_data.is_mobile == "true") ? "mobile" : "desktop"})`;
   } catch (error) {
