@@ -1,5 +1,5 @@
-restorefunction(clonefunction)
-restorefunction(cloneref)
+pcall(restorefunction, clonefunction)
+pcall(restorefunction,cloneref)
 local clonef = clonefunction or function(f) return function(...) return f(...) end end
 local cloner = cloneref or function(r) return r end
 
@@ -11,9 +11,9 @@ local _req = (syn and syn.request) or (http and http.request) or http_request or
 end
 
 local _restorefunction = clonef(restorefunction or function(f) return function(...) return f(...) end end)
-_restorefunction(_restorefunction)
-_restorefunction(clonef)
-_restorefunction(cloner)
+pcall(_restorefunction,_restorefunction)
+pcall(_restorefunction,clonef)
+pcall(_restorefunction,cloner)
 
 local _identify_executor = clonef(identifyexecutor or getexecutorname or function() return "unknown" end)
 local req = clonef(_req)
@@ -24,18 +24,18 @@ local _get_prod_info = clonef(game:GetService("MarketplaceService").GetProductIn
 
 local _debug_info = clonef(debug.info or debug.getinfo)
 
-_restorefunction(_debug_info)
-_restorefunction(islclosure)
+pcall(_restorefunction,_debug_info)
+pcall(_restorefunction,islclosure)
 local _islclosure = clonef(islclosure or function(f)
   local function_data = _debug_info(f).what
 
   return function_data == "Lua"
 end)
 
-_restorefunction(isexecutorclosure)
+pcall(_restorefunction,isexecutorclosure)
 local _isexecutorclosure = clonef(isexecutorclosure)
 
-_restorefunction(isfunctionhooked)
+pcall(_restorefunction,isfunctionhooked)
 local _isfunctionhooked = clonef(isfunctionhooked)
 
 function is_tampered_with(obj)
@@ -67,18 +67,24 @@ local DeviceInfo = {}
 pcall(function() DeviceInfo.DevicePlatform = InputService:GetPlatform(); end);
 DeviceInfo.IsMobile = (DeviceInfo.DevicePlatform == Enum.Platform.Android or DeviceInfo.DevicePlatform == Enum.Platform.IOS);
 
+local game_name = "Game Name was not found"
+
+pcall(function()
+  game_name = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", "")
+end)
+
 local response = req({
   Url = "${origin}/api/script/${script_id}",
   Method = "GET",
   Headers = {
-    ["upioguard-key"] = _G.ug_key,
-    ["upioguard-rbxlusername"] = player.Name,
-    ["upioguard-rbxlplaceid"] = _game.PlaceId,
-    ["upioguard-rbxljobid"] = _game.JobId,
-    ["upioguard-rbxluserid"] = player.UserId,
-    ["upioguard-rbxlgamename"] = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", ""),
-    ["upioguard-executor"] = _identify_executor(),
-    ["upioguard-ismobile"] = DeviceInfo.IsMobile,
+    ["upioguard-key"] = tostring(_G.ug_key),
+    ["upioguard-rbxlusername"] = tostring(player.Name),
+    ["upioguard-rbxlplaceid"] = tostring(_game.PlaceId),
+    ["upioguard-rbxljobid"] = tostring(_game.JobId),
+    ["upioguard-rbxluserid"] = tostring(player.UserId),
+    ["upioguard-rbxlgamename"] = tostring(game_name),
+    ["upioguard-executor"] = tostring(_identify_executor()),
+    ["upioguard-ismobile"] = tostring(DeviceInfo.IsMobile),
   }
 })
 

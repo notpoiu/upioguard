@@ -30,15 +30,11 @@ export default function Keys({params}: {params: {project_id: string}}) {
   const { data } = useProjectData();
 
   return (
-    <main className="justify-center flex flex-col items-center w-full h-screen">
+    <main className="overflow-x-visible">
       <Card className="w-[full]">
-        <CardHeader className="relative">
+        <CardHeader>
           <CardTitle>Script Keys</CardTitle>
           <CardDescription>Create and manage keys for your script</CardDescription>
-
-          <Button className="absolute right-[1.5rem] top-[1.5rem]">
-            Export All Key Data
-          </Button>
         </CardHeader>
         <CardContent>
           <DataTable columns={columns} data={sample_key_data} />
