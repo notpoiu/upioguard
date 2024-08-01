@@ -77,7 +77,7 @@ export default async function Home() {
               >
                 <CardHeader className="flex justify-center items-center flex-col">
                   <CardDescription>Initial Setup Time</CardDescription>
-                  <NumberTicker delay={1.25} value={8} className="text-3xl" suffix=" min" prefix="~" />
+                  <NumberTicker  delay={1} value={8} className="text-3xl" suffix=" min" prefix="~" />
                 </CardHeader>
               </MagicCard>
             </BlurFade>
