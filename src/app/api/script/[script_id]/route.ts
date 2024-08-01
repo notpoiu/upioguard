@@ -36,48 +36,52 @@ function get_hwid(headersList: Headers) {
 }
 
 async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
-  if (webhook_url && webhook_url.trim() != "") {
-    const response = await fetch(webhook_url, {
-      method: "POST",
-      body: JSON.stringify({
-        "content": null,
-        "embeds": [
-          {
-            "title": `${webhook_data.username} has ran script successsfully`,
-            "color": 6291288,
-            "fields": [
-              {
-                "name": "Roblox Info",
-                "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
-                "inline": true
-              },
-              {
-                "name": "Roblox Links",
-                "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + webhook_data.rbxlplaceid + "&jobId=" + webhook_data.rbxljobid + ")\n[View roblox profile](https://www.roblox.com/users/" + webhook_data.userid + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + webhook_data.rbxlplaceid + "/" + webhook_data.rbxlgamename + ")",
-                "inline": true
-              },
-              {
-                "name": "Request Data",
-                "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n  \"is_mobile\": " + webhook_data.is_mobile + "\n}\n\n```"
-              },
-              {
-                "name": "Discord Data",
-                "value": "<@" + webhook_data.userid + "> (" + webhook_data.username + " - " + webhook_data.userid + ")",
-                "inline": true
-              }
-            ]
-          }
-        ],
-        "attachments": []
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      console.log("Failed to send webhook");
+  try {
+    if (webhook_url && webhook_url.trim() != "") {
+      const response = await fetch(webhook_url, {
+        method: "POST",
+        body: JSON.stringify({
+          "content": null,
+          "embeds": [
+            {
+              "title": `${webhook_data.username} has ran script successsfully`,
+              "color": 6291288,
+              "fields": [
+                {
+                  "name": "Roblox Info",
+                  "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
+                  "inline": true
+                },
+                {
+                  "name": "Roblox Links",
+                  "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + webhook_data.rbxlplaceid + "&jobId=" + webhook_data.rbxljobid + ")\n[View roblox profile](https://www.roblox.com/users/" + webhook_data.userid + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + webhook_data.rbxlplaceid + "/" + webhook_data.rbxlgamename + ")",
+                  "inline": true
+                },
+                {
+                  "name": "Request Data",
+                  "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n  \"is_mobile\": " + webhook_data.is_mobile + "\n}\n\n```"
+                },
+                {
+                  "name": "Discord Data",
+                  "value": "<@" + webhook_data.userid + "> (" + webhook_data.username + " - " + webhook_data.userid + ")",
+                  "inline": true
+                }
+              ]
+            }
+          ],
+          "attachments": []
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (!response.ok) {
+        console.log("Failed to send webhook");
+      }
     }
+  } catch (error) {
+    console.error("Failed to send webhook, error: ", error," webhook_url: ", webhook_url);
   }
 
   await db.insert(project_executions).values({ discord_id: discord_id, project_id: project_id, execution_type: webhook_data.is_mobile ? "mobile" : "desktop" });
