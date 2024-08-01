@@ -36,7 +36,7 @@ function get_hwid(headersList: Headers) {
 }
 
 async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
-  if (webhook_url) {
+  if (webhook_url && webhook_url.trim() != "") {
     const response = await fetch(webhook_url, {
       method: "POST",
       body: JSON.stringify({
