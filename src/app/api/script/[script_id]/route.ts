@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
 import { get_project } from "@/app/dashboard/server";
 import { sql } from "drizzle-orm";
+import { sql as vercelSQL } from "@vercel/postgres";
 
 /*
 
@@ -85,11 +86,24 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
   }
 
   try {
-    await db.insert(project_executions).values({
+    /**
+     * await db.insert(project_executions).values({
       discord_id: discord_id,
       project_id: project_id,
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     });
+     * 
+     */
+
+    const sql_query = db.insert(project_executions).values({
+      discord_id: discord_id,
+      project_id: project_id,
+      execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
+    }).toSQL();
+
+    console.log(sql_query.sql);
+
+    await vercelSQL`INSERT INTO project_executions (discord_id, project_id, execution_type) VALUES (${discord_id}, ${project_id}, ${(webhook_data.is_mobile == "true") ? "mobile" : "desktop"})`;
   } catch (error) {
     console.error("Failed to insert project execution, error: ", error, " dump: ", JSON.stringify({
       discord_id: discord_id,
