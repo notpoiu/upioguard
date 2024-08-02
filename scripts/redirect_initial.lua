@@ -51,14 +51,16 @@ pcall(_restorefunction,isfunctionhooked)
 local _isfunctionhooked = clonef(isfunctionhooked)
 
 function is_tampered_with(obj)
-  local resp, errormsg = pcall(function()
+  local success, response = pcall(function()
     if _islclosure(obj) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
       return true
     end
+
+    return false
   end)
 
-  assert(resp, "[upioguard]: Error while checking if object is tampered with: " .. errormsg)
-  return resp
+  assert(success, "[upioguard]: Error while checking if object is tampered with: " .. response)
+  return response
 end
 
 UPIOGUARD_INTERNAL_MESSAGE.update_progress(3)
@@ -95,7 +97,7 @@ end)
 UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 4)
 
 local response = req({
-  Url = "${origin}/api/script/${script_id}",
+  Url = "${origin}/api/script/${script_id}/execute",
   Method = "GET",
   Headers = {
     ["upioguard-key"] = tostring(_G.ug_key),
