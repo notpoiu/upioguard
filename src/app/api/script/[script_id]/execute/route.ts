@@ -43,7 +43,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
           "content": null,
           "embeds": [
             {
-              "title": `${webhook_data.rbxlusername} has ran script successsfully`,
+              "title": `${webhook_data.rbxlusername} has run ${webhook_data.script_name} successsfully`,
               "color": 6291288,
               "fields": [
                 {
@@ -107,7 +107,7 @@ async function ban_analytics(project_id: string,discord_id?: string | null, webh
           "content": null,
           "embeds": [
             {
-              "title": `${webhook_data.rbxlusername} tried to run the script ${webhook_data.script_name} but was blacklisted`,
+              "title": `${webhook_data.rbxlusername} tried to run ${webhook_data.script_name} but was blacklisted`,
               "color": 16734296,
               "fields": [
                 {
@@ -280,10 +280,10 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
     const is_temp_ban = (banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
     if (is_temp_ban) {
-      const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
+      const expires = banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24);
       const now = new Date();
   
-      if (expires < now) {
+      if (expires < now || expires.getTime() <= 0) {
         const user_resp = await db.select().from(users).where(eq(users.key, key));
         const user_data = user_resp[0];
   
@@ -340,7 +340,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       }
     }
 
-    if (!user_data.hwid) {
+    if (!user_data.hwid || !user_data.executor) {
       await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
     } else {
       if (user_data.hwid != fingerprint) {
@@ -407,8 +407,8 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         }
       }
       
-      if (!user_data.hwid) {
-        await db.update(users).set({ hwid: fingerprint }).where(eq(users.key, key));
+      if (!user_data.hwid || !user_data.executor) {
+        await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
       } else {
         if (user_data.hwid != fingerprint) {
           data.is_premium = false;
