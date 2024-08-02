@@ -129,7 +129,7 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2 text-center text-muted-foreground px-2 py-2">
-                <p>No data available, please wait for the script to be executed for the first time.</p>
+                <p>No data available or project is too new to show insignts (1 month).</p>
               </div>
             )
           }

@@ -32,13 +32,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input"
 
 interface DataTableProps<TData, TValue> {
-  key: number;
   refresh: () => void;
   data: TData[]
 }
 
 export function DataTable<TData, TValue>({
-  key,
   refresh,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -309,7 +307,7 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex flex-row">
         <div className="flex items-center justify-center space-x-2 py-4">
-            <CreateKey>
+            <CreateKey refresh={refresh}>
               Create Key
             </CreateKey>
         </div>

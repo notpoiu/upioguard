@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useProjectData } from "../components/project_data_provider";
 import { DataTable } from "./tables/key_data_table";
-import { columns, sample_key_data } from "./tables/table_types";
 import { Key } from "@/db/schema";
 import { useEffect, useState } from "react";
 import { get_script_keys } from "../../server";
@@ -53,10 +52,8 @@ export default function Keys({params}: {params: {project_id: string}}) {
           <CardDescription>Create and manage keys for your script</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable  data={keyData} key={refresh} refresh={refreshData} />
+          <DataTable data={keyData} refresh={refreshData} />
         </CardContent>
-        <CardFooter>
-        </CardFooter>
       </Card>
     </main>
   )

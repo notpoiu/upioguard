@@ -13,11 +13,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import KeyCreationStepper from "./key-creation-stepper";
+import { useState } from "react";
+import { is } from "drizzle-orm";
 
 
-export default function CreateKey({className, variant,children}: {className?: string, variant?: "secondary" | "outline" | "ghost" | "destructive" | "link" | "default" | null | undefined, children: React.ReactNode}) {
+export default function CreateKey({className, refresh, variant,children}: {className?: string, refresh: () => void, variant?: "secondary" | "outline" | "ghost" | "destructive" | "link" | "default" | null | undefined, children: React.ReactNode}) {
+  const [is_open, setIsOpen] = useState(false);
   return (
-    <AlertDialog>
+    <AlertDialog open={is_open} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button className={cn(className)} variant={variant}>{children}</Button>
       </AlertDialogTrigger>
@@ -29,12 +33,7 @@ export default function CreateKey({className, variant,children}: {className?: st
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        
-
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <Button>Create</Button>
-        </AlertDialogFooter>
+        <KeyCreationStepper set_open={setIsOpen} refresh={refresh} />
       </AlertDialogContent>
     </AlertDialog>
   )
