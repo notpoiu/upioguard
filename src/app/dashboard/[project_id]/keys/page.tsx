@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { mkConfig, generateCsv, download } from "export-to-csv";
+import { Key } from "lucide-react";
 
 /*
   const { 
@@ -85,8 +86,14 @@ export default function Keys({params}: {params: {project_id: string}}) {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={() => {
+                  const data_to_export = keyData.map((key) => {
+                    let returnKey = key as any;
+                    delete returnKey["project_id"];
+                    return returnKey;
+                  });
+
                   if (exportFormat === "json") {
-                    const json = JSON.stringify(keyData);
+                    const json = JSON.stringify(data_to_export);
                     
                     const blob = new Blob([json], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
@@ -101,7 +108,7 @@ export default function Keys({params}: {params: {project_id: string}}) {
 
                   if (exportFormat === "csv") {
                     const csvConfig = mkConfig({ useKeysAsHeaders: true });
-                    download(csvConfig)(generateCsv(csvConfig)(keyData as []))
+                    download(csvConfig)(generateCsv(csvConfig)(data_to_export as []))
                   }
                 }}>Export All Keys</AlertDialogAction>
               </AlertDialogFooter>
