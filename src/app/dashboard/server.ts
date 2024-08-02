@@ -23,7 +23,7 @@ async function validate_admin_account() {
   }
 }
 
-async function validate_permissions(project_id: string) {
+export async function validate_permissions(project_id: string) {
   const session = await auth();
 
   if (session?.user?.id === undefined) {

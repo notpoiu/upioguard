@@ -124,7 +124,7 @@ export default function KeyCreationStepper({set_open, refresh}: { set_open: (is_
             return;
           }
 
-          const promise = fetch("/api/key/create", {
+          const promise = fetch(`/api/script/${data.project_id}/manage/key/create`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -135,7 +135,6 @@ export default function KeyCreationStepper({set_open, refresh}: { set_open: (is_
               note: note,
               key_expires: key_expires,
               key_type: key_type,
-              script_id: data.project_id,
             }),
           });
 

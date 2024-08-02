@@ -5,8 +5,10 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { project } from "./db/schema";
+import { project, project_api_keys } from "./db/schema";
 import { notFound } from "next/navigation";
+import { validate_permissions } from "./app/dashboard/server";
+import { headers } from "next/headers";
 
 function get_pathname(request: NextApiRequest) {
   const url_parts = request.url?.split("/");
@@ -31,5 +33,28 @@ export default async function middleware(request: NextApiRequest, response: Next
     }
 
     return NextResponse.rewrite(new URL(`/api/script/initial/${script_id}`, request.url));
+  }
+
+  if (pathname.match(/\/api\/script\/[a-zA-Z0-9]+\/manage/)) {
+    const script_id = pathname.split("/").splice(3, 1)[0];
+    const session = await auth();
+
+    const resp_project_api_keys = await db.select().from(project_api_keys).where(eq(project_api_keys.project_id, script_id));
+    const valid_keys = resp_project_api_keys.map((x) => x.api_key);
+    
+    let api_key = headers().get("api-key");
+
+    console.log(valid_keys.includes(api_key ?? ""))
+    if (!session && valid_keys.includes(api_key ?? "")) {
+      return NextResponse.next();
+    }
+    
+    try {
+      await validate_permissions(script_id);
+
+      return NextResponse.next();
+    } catch (e) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 }

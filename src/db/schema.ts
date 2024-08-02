@@ -72,6 +72,11 @@ export const project_admins = pgTable("project_admins", {
   project_id: text("project_id").notNull(),
 });
 
+export const banned_users = pgTable("banned_users", {
+  hwid: text("hwid").notNull(),
+  reason: text("reason"),
+});
+
 export const users = pgTable("users", {
   project_id: text("project_id").notNull(),
   discord_id: text("discord_id").notNull(),
