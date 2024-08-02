@@ -231,19 +231,19 @@ export default function Keys({params}: {params: {project_id: string}}) {
                           body: JSON.stringify({
                             hwid: newBanHWID,
                             reason: newBanReason,
-                            expiration: expiration === "temporary" ? expirationDate : undefined,
+                            expiration: expiration === "temporary" ? expirationDate?.getTime() : undefined,
                           }),
                         });
 
                         toast.promise(promise, {
-                          loading: "blacklisting...",
+                          loading: "Blacklisting...",
                           success: () => {
                             refreshScriptBanData();
                             setNewBanHWID("");
                             setNewBanReason("");
                             setExpiration("permanent");
                             setExpirationDate(undefined);
-                            return "blacklisted user successfully!";
+                            return "Blacklisted user successfully!";
                           },
                           error: "Failed to blacklist user",
                         });

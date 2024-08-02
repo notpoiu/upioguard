@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, {params}: {  params: { script_id: s
     hwid: hwid as string,
     project_id: params.script_id,
     reason: reason as string,
-    expires: expiration as Date | undefined,
+    expires: new Date(expiration),
   });
 
   return NextResponse.json({success: true, banned: {hwid: hwid, reason: reason}})
