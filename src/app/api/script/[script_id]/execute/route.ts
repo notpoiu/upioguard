@@ -283,7 +283,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       const expires = banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24);
       const now = new Date();
   
-      if (expires < now || expires.getTime() <= 0) {
+      if (expires > now) {
         const user_resp = await db.select().from(users).where(eq(users.key, key));
         const user_data = user_resp[0];
   
