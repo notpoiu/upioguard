@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { mkConfig, generateCsv, download } from "export-to-csv";
-import { Key } from "lucide-react";
+import { Key } from "@/db/schema";
 
 /*
   const { 
