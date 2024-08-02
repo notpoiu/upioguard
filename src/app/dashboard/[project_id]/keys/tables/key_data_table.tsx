@@ -21,19 +21,206 @@ import { useEffect } from "react"
 import React from "react"
 import CreateKey from "../components/create-key"
 
+import { create_script_key_raw, delete_script_key, modify_key_note, reset_hwid } from "@/app/dashboard/server";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Key } from "@/db/schema";
+import { MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+  key: number;
+  refresh: () => void;
   data: TData[]
 }
 
 export function DataTable<TData, TValue>({
-  columns,
+  key,
+  refresh,
   data,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState<any>({});
+  const [editNoteOpen, setEditNoteOpen] = React.useState(false);
+  const [editNoteKey, setEditNoteKey] = React.useState<Key | null>(null);
+  const [newNote, setNewNote] = React.useState("");
+
+  const columns: ColumnDef<Key>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "key",
+      header: "Key",
+    },
+    {
+      accessorKey: "key_type",
+      header: "Key Type",
+      cell: ({ row }) => {
+        return (
+          <>
+            <Badge variant={(row.original.key_type === "temporary" || row.original.key_type === "checkpoint") ? "outline" : "default"} className="capitalize">{row.original.key_type}</Badge>
+            {row.original.key_expires !== null && (row.original.key_expires as Date).getTime() < Date.now() && <Badge variant="destructive" className="capitalize mt-2">Expired</Badge>}
+          </>
+        )
+      }
+    },
+    {
+      accessorKey: "username",
+      header: "Discord",
+      cell: ({ row }) => {
+        return (
+          <span>{row.getValue("username")}</span>
+        )
+      }
+    },
+    {
+      accessorKey: "hwid",
+      header: "HWID",
+      cell: ({ row }) => {
+        if (row.original.hwid === null) {
+          return <span className="text-muted-foreground font-light">None</span>
+        }
+        return <p className="max-w-[5rem] text-ellipsis overflow-hidden">{row.original.hwid}</p>
+      }
+    },
+    {
+      accessorKey: "executor",
+      header: "Executor",
+      cell: ({ row }) => {
+        if (row.original.executor === null) {
+          return <span className="text-muted-foreground font-light">None</span>
+        }
+        return <span>{row.original.executor}</span>
+      }
+    },
+    {
+      accessorKey: "note",
+      header: "Note",
+      cell: ({ row }) => {
+        if (row.original.note === null) {
+          return <span className="text-muted-foreground font-light">None</span>
+        }
+        return <span>{row.original.note}</span>
+      }
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  toast.success("HWID copied to clipboard successfully!")
+                  navigator.clipboard.writeText(row.original.hwid ?? "No HWID")
+                }}
+              >
+                Copy HWID
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  toast.success("Key copied to clipboard successfully!")
+                  navigator.clipboard.writeText(row.original.key)
+                }}
+              >
+                Copy Key
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  toast.success("User ID copied to clipboard successfully!")
+                  navigator.clipboard.writeText(row.original.discord_id)
+                }}
+              >
+                Copy Discord ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  toast.promise(reset_hwid(row.original.project_id, row.original.key), {
+                    loading: "Resetting HWID...",
+                    success: () => {
+                      refresh();
+                      return "HWID reset successfully!";
+                    },
+                    error: "Failed to reset HWID",
+                  })
+                }}
+              >
+                Reset HWID
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setEditNoteOpen(true);
+                setEditNoteKey(row.original);
+                setNewNote(row.original.note ?? "");
+              }}>
+                Edit Note
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-500" onClick={() => {
+                const key = row.original;
+                delete_script_key(row.original.project_id, key.key);
+                refresh();
+                toast("Key deleted successfully!", {
+                  description: "If you did not mean to delete this key you may undo.",
+                  action: {
+                    label: "Undo",
+                    onClick: () => {
+                      create_script_key_raw(row.original.project_id, key).then(() => {
+                        toast.success("Key deleted successfully, you may need to refresh to see the changes.");
+                        refresh();
+                      });
+                    }
+                  },
+                  duration: 5000,
+                })
+              }}>Delete Key</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-500" onClick={() => {
+                if (row.original.hwid === null) {
+                  toast.error("This key does not have an HWID, you cannot ban it.");
+                  return;
+                }
+
+                toast.info("Banning HWIDs is not yet implemented.")
+              }}>Ban HWID</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
 
   const table = useReactTable({
     data,
+    //@ts-ignore
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -49,6 +236,33 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
+      <AlertDialog open={editNoteOpen} onOpenChange={setEditNoteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Note</AlertDialogTitle>
+            <AlertDialogDescription>
+              Edit note for this key
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input placeholder="Note" value={newNote} onChange={(e) => setNewNote(e.target.value)} />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              toast.promise(modify_key_note(editNoteKey?.project_id ?? "", editNoteKey?.key ?? "", newNote), {
+                loading: "Editing note...",
+                success: () => {
+                  refresh();
+                  setEditNoteKey(null);
+                  setEditNoteOpen(false);
+                  setNewNote("");
+                  return "Note edited successfully!";
+                },
+                error: "Failed to edit note",
+              })
+            }}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

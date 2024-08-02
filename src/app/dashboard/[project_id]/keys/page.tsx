@@ -33,12 +33,17 @@ export default function Keys({params}: {params: {project_id: string}}) {
   const { data } = useProjectData();
 
   const [keyData, setKeyData] = useState<Key[]>([]);
+  const [refresh, setRefresh] = useState(1);
+
+  const refreshData = () => {
+    setRefresh(refresh + 1);
+  }
 
   useEffect(() => {
     get_script_keys(params.project_id).then((data) => {
       setKeyData(data as Key[]);
     });
-  }, []);
+  }, [refresh]);
 
   return (
     <main className="overflow-x-visible">
@@ -48,7 +53,7 @@ export default function Keys({params}: {params: {project_id: string}}) {
           <CardDescription>Create and manage keys for your script</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable columns={columns} data={keyData} />
+          <DataTable  data={keyData} key={refresh} refresh={refreshData} />
         </CardContent>
         <CardFooter>
         </CardFooter>

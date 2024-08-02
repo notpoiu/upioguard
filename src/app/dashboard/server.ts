@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project, users } from "@/db/schema";
+import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project, users, Key } from "@/db/schema";
 import { getRandomArbitrary, randomString } from "@/lib/utils";
 import { count, eq, sql } from "drizzle-orm";
 
@@ -245,4 +245,72 @@ export async function get_script_keys(project_id: string) {
 
   const user_data = await db.select().from(users).where(eq(users.project_id, project_id));
   return user_data;
+}
+
+export async function delete_script_key(project_id: string, key: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.delete(users).where(sql`${users.project_id} = ${project_id} AND ${users.key} = ${key}`);
+}
+
+export async function create_script_key_raw(project_id: string, data: Key) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.insert(users).values({
+    project_id: project_id,
+    key: data.key,
+    key_expires: data.key_expires,
+    key_type: data.key_type,
+    discord_id: data.discord_id,
+    username: data.username,
+    note: data.note,
+    hwid: data.hwid,
+    executor: data.executor,
+  })
+}
+
+export async function reset_hwid(project_id: string, key: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.update(users).set({ hwid: null, executor: null }).where(eq(users.key, key));
+}
+
+// add export when its implemented
+async function ban_hwid(project_id: string, key: string) {
+  // TODO: implement
+}
+
+export async function modify_key_note(project_id: string, key: string, note: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  if (note.trim() == "") {
+    await db.update(users).set({ note: null }).where(eq(users.key, key));
+    return;
+  }
+
+  await db.update(users).set({ note: note }).where(eq(users.key, key));
 }
