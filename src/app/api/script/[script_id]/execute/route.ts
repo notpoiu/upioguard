@@ -43,7 +43,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
           "content": null,
           "embeds": [
             {
-              "title": `${webhook_data.username} has ran script successsfully`,
+              "title": `${webhook_data.rbxlusername} has ran script successsfully`,
               "color": 6291288,
               "fields": [
                 {
@@ -95,6 +95,56 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
       project_id: project_id,
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     }));
+  }
+}
+
+async function ban_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
+  try {
+    if (webhook_url && webhook_url.trim() != "") {
+      const response = await fetch(webhook_url, {
+        method: "POST",
+        body: JSON.stringify({
+          "content": null,
+          "embeds": [
+            {
+              "title": `${webhook_data.rbxlusername} tried to run the script ${webhook_data.script_name} but was blacklisted`,
+              "color": 16734296,
+              "fields": [
+                {
+                  "name": "Roblox Info",
+                  "value": "```json\n{\n  \"username\": \"" + webhook_data.rbxlusername + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
+                  "inline": true
+                },
+                {
+                  "name": "Roblox Links",
+                  "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + encodeURIComponent(webhook_data.rbxlplaceid) + "&jobId=" + encodeURIComponent(webhook_data.rbxljobid) + ")\n[View roblox profile](https://www.roblox.com/users/" + encodeURIComponent(webhook_data.userid) + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + encodeURIComponent(webhook_data.rbxlplaceid) + "/" + encodeURIComponent(webhook_data.rbxlgamename) + ")",
+                  "inline": true
+                },
+                {
+                  "name": "Request Data",
+                  "value": "```json\n{\n  \"fingerprint\": \"" + webhook_data.hwid + "\",\n  \"executor\": \"" + webhook_data.executor + "\",\n  \"key\": \"" + webhook_data.key + "\",\n  \"is_premium\": " + webhook_data.is_premium + "\n  \"is_mobile\": " + webhook_data.is_mobile + "\n}\n\n```"
+                },
+                {
+                  "name": "Discord Data",
+                  "value": "<@" + webhook_data.userid + "> (" + webhook_data.username + " - " + webhook_data.userid + ")",
+                  "inline": true
+                }
+              ]
+            }
+          ],
+          "attachments": []
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (!response.ok) {
+        console.log("Failed to send webhook");
+      }
+    }
+  } catch (error) {
+    console.error("Failed to send webhook, error: ", error," webhook_url: ", webhook_url);
   }
 }
 
@@ -205,6 +255,25 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
   const is_perm_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
 
   if (is_perm_ban) {
+    const user_resp = await db.select().from(users).where(eq(users.key, key));
+    const user_data = user_resp[0];
+
+    await ban_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
+      username: user_data.username,
+      userid: user_data.discord_id,
+      hwid: fingerprint,
+      script_name: project_data.name,
+      is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
+      expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
+      rbxlusername: username,
+      rbxluserid: userid,
+      rbxlplaceid: placeid,
+      rbxljobid: jobid,
+      rbxlgamename: gamename,
+      executor: executor,
+      key: key,
+      is_mobile: is_mobile == "true" ? true : false,
+    });
     return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
 Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
   }
@@ -216,6 +285,26 @@ Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
     const now = new Date();
 
     if (expires < now) {
+      const user_resp = await db.select().from(users).where(eq(users.key, key));
+      const user_data = user_resp[0];
+
+      await ban_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
+        username: user_data.username,
+        userid: user_data.discord_id,
+        hwid: fingerprint,
+        script_name: project_data.name,
+        is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
+        expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
+        rbxlusername: username,
+        rbxluserid: userid,
+        rbxlplaceid: placeid,
+        rbxljobid: jobid,
+        rbxlgamename: gamename,
+        executor: executor,
+        key: key,
+        is_mobile: is_mobile == "true" ? true : false,
+      });
+
       return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
 Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
 
