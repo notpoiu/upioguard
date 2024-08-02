@@ -36,7 +36,7 @@ import { useProjectData } from "../../components/project_data_provider";
 import { toast } from "sonner";
 
 
-export default function KeyCreationStepper({set_open, refresh}: {set_is_finished: (is_finished: boolean) => void, set_open: (is_open: boolean) => void, refresh: () => void}) {
+export default function KeyCreationStepper({set_open, refresh}: { set_open: (is_open: boolean) => void, refresh: () => void}) {
 
   const {data} = useProjectData();
 

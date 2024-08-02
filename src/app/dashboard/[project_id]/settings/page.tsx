@@ -24,6 +24,8 @@ import { delete_project, update_project } from "../../server";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+
+// TODO: add settings for github repo and github token
 export default function Settings({params}: {params: {project_id: string}}) {
 
   const router = useRouter();
