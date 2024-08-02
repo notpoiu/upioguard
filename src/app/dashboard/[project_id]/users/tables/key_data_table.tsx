@@ -48,7 +48,7 @@ interface DataTableProps<TData, TValue> {
   children?: React.ReactNode
 }
 
-export function DataTable<TData, TValue>({
+export function KeyDataTable<TData, TValue>({
   refresh,
   data,
   children,

@@ -6,6 +6,7 @@ import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
+import { is, sql } from "drizzle-orm";
 
 /*
 
@@ -123,15 +124,33 @@ const headers_in_use = [
 ]
 
 async function fetch_script(octokit: Octokit, project_data: any, user_data: any, fingerprint: string) {
-  const banned_users_resp = await db.select().from(banned_users).where(eq(banned_users.hwid, fingerprint));
-
-  if (banned_users_resp.length > 0) {
-    return new Response(kick_script("upioguard", `You have been banned from using this script
-Reason: ${banned_users_resp[0].reason}`, project_data.is_discord_enabled, project_data.discord_link));
-  }
 
   const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
   const discord_link = project_data.discord_link ?? "";
+
+  const banned_users_resp = await db.select().from(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
+
+
+  const is_perm_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
+
+  if (is_perm_ban) {
+    return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
+Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+  }
+
+  const is_temp_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
+
+  if (is_temp_ban) {
+    const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
+    const now = new Date();
+
+    if (expires < now) {
+      return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
+Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
+
+Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+    }
+  }
 
   try {
     const response = await octokit.repos.getContent({
@@ -203,7 +222,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     auth: project_data.github_token,
   });
 
-  // handle paid projects (im sorry for the spaghetti code i just want to get a prototype done)
+
   if (project_data.project_type == "paid") {
     const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
     const discord_link = project_data.discord_link ?? "";

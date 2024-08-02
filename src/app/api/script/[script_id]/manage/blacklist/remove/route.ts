@@ -8,12 +8,9 @@ import { NextResponse } from "next/server";
 import { validate_permissions } from "@/app/dashboard/server";
 
 export async function POST(req: NextRequest, params: { script_id: string }) {
-  let { hwid, reason } = await req.json();
+  let { hwid } = await req.json();
 
-  await db.insert(banned_users).values({
-    hwid: hwid,
-    reason: reason,
-  });
+  await db.delete(banned_users).where(eq(banned_users.hwid, hwid));
 
-  return NextResponse.json({success: true, banned: {hwid: hwid, reason: reason}})
+  return NextResponse.json({success: true, banned: {hwid: hwid}})
 }

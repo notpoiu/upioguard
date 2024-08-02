@@ -21,7 +21,7 @@ export const presence_colors: {[key: string]: string} = {
 export default function Navbar({ user, project_id }: { user: User, project_id: string }) {
   const pages = [
     { name: "Home", link: `/dashboard/${project_id}`, icon: <Home/> },
-    { name: "Keys", link: `/dashboard/${project_id}/keys`, icon: <KeyIcon/> },
+    { name: "Users", link: `/dashboard/${project_id}/users`, icon: <KeyIcon/> },
     { name: "Analytics", link: `/dashboard/${project_id}/analytics`, icon: <BarChart2Icon/> },
     { name: "Script Settings", link: `/dashboard/${project_id}/settings`, icon: <Settings/> }
   ]

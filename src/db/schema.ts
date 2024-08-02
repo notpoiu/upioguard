@@ -75,7 +75,16 @@ export const project_admins = pgTable("project_admins", {
 export const banned_users = pgTable("banned_users", {
   hwid: text("hwid").notNull(),
   reason: text("reason"),
+  project_id: text("project_id").notNull(),
+  expires: timestamp("expires"),
 });
+
+export interface BannedUser {
+  hwid: string;
+  reason: string | undefined;
+  project_id: string;
+  expires: Date | undefined;
+}
 
 export const users = pgTable("users", {
   project_id: text("project_id").notNull(),
