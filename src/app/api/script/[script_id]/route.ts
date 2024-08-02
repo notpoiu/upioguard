@@ -144,7 +144,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
   for (const header_key of headers_in_use) {
     if (!validate_header(header_key, headers_dict)) {
-      return new Response(kick_script("upioguard", "Invalid header provided", false, ""));
+      return new Response(kick_script("upioguard", "Invalid request\nMissing: " + header_key, false, ""));
     }
   }
 
