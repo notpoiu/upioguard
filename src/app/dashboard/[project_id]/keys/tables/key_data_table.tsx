@@ -34,16 +34,19 @@ import { Input } from "@/components/ui/input"
 interface DataTableProps<TData, TValue> {
   refresh: () => void;
   data: TData[]
+  children?: React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
   refresh,
   data,
+  children,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState<any>({});
   const [editNoteOpen, setEditNoteOpen] = React.useState(false);
   const [editNoteKey, setEditNoteKey] = React.useState<Key | null>(null);
   const [newNote, setNewNote] = React.useState("");
+
 
   const columns: ColumnDef<Key>[] = [
     {
@@ -311,6 +314,7 @@ export function DataTable<TData, TValue>({
             <CreateKey refresh={refresh}>
               Create Key
             </CreateKey>
+            {children}
         </div>
         <div className="flex items-center justify-center space-x-2 py-4 ml-auto">
           <Button

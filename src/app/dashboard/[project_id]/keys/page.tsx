@@ -17,6 +17,11 @@ import { DataTable } from "./tables/key_data_table";
 import { Key } from "@/db/schema";
 import { useEffect, useState } from "react";
 import { get_script_keys } from "../../server";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { mkConfig, generateCsv, download } from "export-to-csv";
 
 /*
   const { 
@@ -33,6 +38,8 @@ export default function Keys({params}: {params: {project_id: string}}) {
 
   const [keyData, setKeyData] = useState<Key[]>([]);
   const [refresh, setRefresh] = useState(1);
+
+  const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
 
   const refreshData = () => {
     setRefresh(refresh + 1);
@@ -52,7 +59,55 @@ export default function Keys({params}: {params: {project_id: string}}) {
           <CardDescription>Create and manage keys for your script</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable data={keyData} refresh={refreshData} />
+          <DataTable data={keyData} refresh={refreshData}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline">Export Keys</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Export Keys</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Export keys for this project in different formats
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              
+              <Select onValueChange={(value) => setExportFormat(value as "json" | "csv")} value={exportFormat}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Export Format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="csv">CSV</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => {
+                  if (exportFormat === "json") {
+                    const json = JSON.stringify(keyData);
+                    
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "keys.json";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    a.remove();
+                  }
+
+                  if (exportFormat === "csv") {
+                    const csvConfig = mkConfig({ useKeysAsHeaders: true });
+                    download(csvConfig)(generateCsv(csvConfig)(keyData as []))
+                  }
+                }}>Export All Keys</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          </DataTable>
         </CardContent>
       </Card>
     </main>
