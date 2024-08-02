@@ -52,7 +52,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
                 },
                 {
                   "name": "Roblox Links",
-                  "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + webhook_data.rbxlplaceid + "&jobId=" + webhook_data.rbxljobid + ")\n[View roblox profile](https://www.roblox.com/users/" + webhook_data.userid + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + webhook_data.rbxlplaceid + "/" + webhook_data.rbxlgamename + ")",
+                  "value": "[Join in roblox](https://externalrobloxjoiner.glitch.me/join?placeId=" + encodeURIComponent(webhook_data.rbxlplaceid) + "&jobId=" + encodeURIComponent(webhook_data.rbxljobid) + ")\n[View roblox profile](https://www.roblox.com/users/" + encodeURIComponent(webhook_data.userid) + "/profile)\n[Roblox experience link](https://www.roblox.com/games/" + encodeURIComponent(webhook_data.rbxlplaceid) + "/" + encodeURIComponent(webhook_data.rbxlgamename) + ")",
                   "inline": true
                 },
                 {
