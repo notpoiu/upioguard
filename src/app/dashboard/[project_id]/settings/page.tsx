@@ -23,9 +23,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { delete_project, update_project } from "../../server";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { EyeIcon } from "lucide-react";
 
 
-// TODO: add settings for github repo and github token
 export default function Settings({params}: {params: {project_id: string}}) {
 
   const router = useRouter();
@@ -38,6 +38,16 @@ export default function Settings({params}: {params: {project_id: string}}) {
   const [discord_link, setDiscordLink] = React.useState(data.discord_link ?? null);
   const [discord_webhook, setDiscordWebhook] = React.useState(data.discord_webhook ?? null);
 
+  const [github_repo, setGithubRepo] = React.useState<{ name: string, owner: string, path: string }>({
+    name: data.github_repo ?? "",
+    owner: data.github_owner ?? "",
+    path: data.github_path ?? "",
+  });
+
+  const [github_token, setGithubToken] = React.useState(data.github_token ?? "");
+
+  const [set_visible_token, setSetVisibleToken] = React.useState(false);
+
   useEffect(() => {
     setProjectName(data.name ?? "Unknown");
     setProjectDescription(data.description ?? "Unknown");
@@ -45,6 +55,36 @@ export default function Settings({params}: {params: {project_id: string}}) {
     setDiscordLink(data.discord_link ?? null);
     setDiscordWebhook(data.discord_webhook ?? null);
   }, [data]);
+
+  function fetch_owner_repo_path(url: string) {
+    const url_param_regex = /\?.*/;
+    
+    url = url.replace(url_param_regex, "");
+
+    if (url.startsWith("https://github.com/")) {
+      const github_owner_regex = /github\.com\/([^/]+)/;
+      const github_repo_regex = /github\.com\/[^/]+\/([^/]+)/;
+      const github_path_regex = /github\.com\/[^/]+\/[^/]+\/blob\/main\/([^/]+)/;
+
+      const github_owner = github_owner_regex.exec(url)?.[1];
+      const github_repo = github_repo_regex.exec(url)?.[1];
+      const github_path = github_path_regex.exec(url)?.[1];
+      return [github_owner, github_repo, github_path];
+    }
+
+    if (url.startsWith("https://raw.githubusercontent.com")) {
+      const github_owner_regex = /raw\.githubusercontent\.com\/([^/]+)/;
+      const github_repo_regex = /raw\.githubusercontent\.com\/[^/]+\/([^/]+)/;
+      const github_path_regex = /raw\.githubusercontent\.com\/[^/]+\/[^/]+\/main\/([^/]+)/;
+
+      const github_owner = github_owner_regex.exec(url)?.[1];
+      const github_repo = github_repo_regex.exec(url)?.[1];
+      const github_path = github_path_regex.exec(url)?.[1];
+      return [github_owner, github_repo, github_path];
+    }
+
+    return ["", "", ""];
+  }
 
   function saveProjectData() {
     const update_data = data;
@@ -54,6 +94,9 @@ export default function Settings({params}: {params: {project_id: string}}) {
     update_data.project_type = project_type;
     update_data.discord_link = discord_link;
     update_data.discord_webhook = discord_webhook;
+    update_data.github_owner = github_repo.name;
+    update_data.github_path = github_repo.path;
+    update_data.github_token = github_token;
 
     toast.promise(update_project(params.project_id, update_data), {
       loading: "Updating project...",
@@ -73,8 +116,8 @@ export default function Settings({params}: {params: {project_id: string}}) {
           {data.project_type === "free-paywall" && <TabsTrigger value="checkpoint">Checkpoint</TabsTrigger>}
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
-        <TabsContent value="main">
-          <Card className="mt-5">
+        <TabsContent value="main" className="*:mb-5 *:mt-5">
+          <Card>
             <CardHeader>
               <CardTitle>Script Name</CardTitle>
               <CardDescription>Enter a new name for your script</CardDescription>
@@ -92,7 +135,7 @@ export default function Settings({params}: {params: {project_id: string}}) {
             </CardFooter>
           </Card>
 
-          <Card className="mt-5">
+          <Card>
             <CardHeader>
               <CardTitle>Script Description</CardTitle>
               <CardDescription>Enter a new description for your script</CardDescription>
@@ -110,7 +153,7 @@ export default function Settings({params}: {params: {project_id: string}}) {
             </CardFooter>
           </Card>
 
-          <Card className="mt-5">
+          <Card>
             <CardHeader>
               <CardTitle>Discord Webhook</CardTitle>
               <CardDescription>Set a discord webhook URL to send execution data on script execution</CardDescription>
@@ -128,7 +171,7 @@ export default function Settings({params}: {params: {project_id: string}}) {
             </CardFooter>
           </Card>
 
-          <Card className="mt-5 mb-5">
+          <Card>
             <CardHeader>
               <CardTitle>Discord Link</CardTitle>
               <CardDescription>Set a discord link so users can join your discord server when the script errors</CardDescription>
@@ -146,16 +189,16 @@ export default function Settings({params}: {params: {project_id: string}}) {
             </CardFooter>
           </Card>
         </TabsContent>
-        <TabsContent value="checkpoint">
-          <Card className="mt-5">
+        <TabsContent value="checkpoint" className="*:mb-5 *:mt-5">
+          <Card>
             <CardHeader>
               <CardTitle>Coming Soon...</CardTitle>
               <CardDescription>Coming in the next version of upioguard</CardDescription>
             </CardHeader>
           </Card>
         </TabsContent>
-        <TabsContent value="advanced">
-          <Card className="mt-5">
+        <TabsContent value="advanced" className="*:mb-5 *:mt-5">
+          <Card>
             <CardHeader>
               <CardTitle>Project Type</CardTitle>
               <CardDescription>Select the type of your project</CardDescription>
@@ -182,7 +225,51 @@ export default function Settings({params}: {params: {project_id: string}}) {
             </CardFooter>
           </Card>
 
-          <Card className="mt-5">
+          <Card>
+            <CardHeader>
+              <CardTitle>Github Repo</CardTitle>
+              <CardDescription>Set a github repo so upioguard can fetch the script file</CardDescription>
+            </CardHeader>
+            <CardFooter className="flex flex-col">
+              <Input placeholder="owner/repo" value={`https://github.com/${github_repo.owner}/${github_repo.name}/blob/main/${github_repo.path}`} onChange={(e) => {
+                const [owner, repo, path] = fetch_owner_repo_path(e.target.value);
+                setGithubRepo({ name: repo ?? "", owner: owner ?? "", path: path ?? "" });
+              }} />
+              <div className="w-full flex justify-between mt-2">
+                <div className="flex justify-center items-center">
+                  <p className="text-xs text-muted-foreground">
+                    This url will be used to fetch the script file
+                  </p>
+                </div>
+                <Button size={"sm"} onClick={saveProjectData}>Save</Button>
+              </div>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Github Access Token</CardTitle>
+              <CardDescription>Set a github access token so upioguard can fetch the script file</CardDescription>
+            </CardHeader>
+            <CardFooter className="flex flex-col">
+              <div className="flex flex-row gap-2 w-full">
+                <Input placeholder="ghp_..." value={github_token} type={set_visible_token ? "text" : "password"} onChange={(e) => setGithubToken(e.target.value)} className="w-full" />
+                <Button size={"icon"} onClick={() => setSetVisibleToken(!set_visible_token)}>
+                  <EyeIcon />
+                </Button>
+              </div>
+              <div className="w-full flex justify-between mt-2">
+                <div className="flex justify-center items-center">
+                  <p className="text-xs text-muted-foreground">
+                    This token will be used to fetch the script file
+                  </p>
+                </div>
+                <Button size={"sm"} onClick={saveProjectData}>Save</Button>
+              </div>
+            </CardFooter>
+          </Card>
+
+          <Card>
             <CardHeader>
               <CardTitle>Delete Project</CardTitle>
               <CardDescription>Delete this project and all associated data such as api keys, execution data and user key data</CardDescription>
