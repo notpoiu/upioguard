@@ -85,7 +85,7 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
       desktop: chartData.reduce((acc, curr) => acc + curr.desktop, 0),
       mobile: chartData.reduce((acc, curr) => acc + curr.mobile, 0),
     }),
-    []
+    [chartData]
   )
 
   return (
