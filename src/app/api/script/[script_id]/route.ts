@@ -6,10 +6,6 @@ import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
-import { get_project } from "@/app/dashboard/server";
-import { sql } from "drizzle-orm";
-import { sql as vercelSQL } from "@vercel/postgres";
-import { log } from "@/lib/log";
 
 /*
 
@@ -38,7 +34,7 @@ function get_hwid(headersList: Headers) {
 }
 
 async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
-  /*try {
+  try {
     if (webhook_url && webhook_url.trim() != "") {
       const response = await fetch(webhook_url, {
         method: "POST",
@@ -87,31 +83,18 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
   }
 
   try {
-    /**
-     * await db.insert(project_executions).values({
+    await db.insert(project_executions).values({
       discord_id: discord_id,
       project_id: project_id,
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     });
-     * 
-     *
-
-    const sql_query = db.insert(project_executions).values({
-      discord_id: discord_id,
-      project_id: project_id,
-      execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
-    }).toSQL();
-
-    log(sql_query.sql);
-
-    await vercelSQL`INSERT INTO project_executions (discord_id, project_id, execution_type) VALUES (${discord_id}, ${project_id}, ${(webhook_data.is_mobile == "true") ? "mobile" : "desktop"})`;
   } catch (error) {
     console.error("Failed to insert project execution, error: ", error, " dump: ", JSON.stringify({
       discord_id: discord_id,
       project_id: project_id,
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     }));
-  }*/
+  }
 }
 
 function validate_header(header_key: string, headers_dict: any) {
@@ -139,9 +122,8 @@ const headers_in_use = [
   "upioguard-ismobile"
 ]
 
-export async function GET(request: NextRequest, {params}: {params: {project_id: string}}) {
+export async function GET(request: NextRequest, {params}: {params: {script_id: string}}) {
   const headers_dict = Object.fromEntries(request.headers.entries());
-
   const fingerprint = get_hwid(request.headers);
 
   // im sorry
@@ -167,7 +149,7 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
   }
 
   // Get Project Data
-  const project_resp = await db.select().from(project).where(sql`${project.project_id} = ${params.project_id}`);
+  const project_resp = await db.select().from(project).where(eq(project.project_id, params.script_id));
 
   if (project_resp.length == 0) {
     return new Response(kick_script("upioguard", "Invalid script provided", false, ""));
@@ -179,11 +161,8 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     auth: project_data.github_token,
   });
 
-  log("Got octokit token");
-
   // handle paid projects (im sorry for the spaghetti code i just want to get a prototype done)
   if (project_data.project_type == "paid") {
-    log("Project type is paid");
     const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
     const discord_link = project_data.discord_link ?? "";
 
@@ -212,14 +191,13 @@ export async function GET(request: NextRequest, {params}: {params: {project_id: 
     }
 
     if (!user_data.hwid) {
-      await db.update(users).set({ hwid: fingerprint }).where(eq(users.key, key));
+      await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
     } else {
       if (user_data.hwid != fingerprint) {
         return new Response(error_script);
       }
     }
 
-    log("User data is valid");
     // Analytics
     await collect_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
       username: user_data.username,
@@ -270,7 +248,6 @@ ${content}`);
 
   // handle free projects
   if (project_data.project_type == "free-paywall") {
-    log("Project type is free");
     const is_discord_enabled = project_data.discord_link != null;
     const discord_link = project_data.discord_link ?? "";
 
@@ -286,7 +263,6 @@ ${content}`);
     }
 
     if (key) {
-      log("Key is valid");
       const user_resp = await db.select().from(users).where(eq(users.key, key));
 
       if (user_resp.length == 0) {
@@ -340,8 +316,6 @@ ${content}`);
         ismobile: is_mobile,
       });
     } else {
-      log("Key is not valid");
-
       await collect_analytics(project_data.project_id, null, project_data.discord_webhook, {
         username: "",
         userid: "",
@@ -358,8 +332,7 @@ ${content}`);
         is_mobile: is_mobile,
       });
     }
-
-    log("getting repo content");
+    
     try {
       const response = await octokit.repos.getContent({
         owner: project_data.github_owner,
