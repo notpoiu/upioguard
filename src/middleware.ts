@@ -32,7 +32,7 @@ export default async function middleware(request: NextApiRequest, response: Next
       return NextResponse.rewrite(new URL(`/404`, request.url));
     }
 
-    return NextResponse.rewrite(new URL(`/api/script/initial/${script_id}`, request.url));
+    return NextResponse.rewrite(new URL(`/api/script/${script_id}/execute/initial_redirect_gen`, request.url));
   }
 
   if (pathname.match(/\/api\/script\/[a-zA-Z0-9]+\/manage/)) {
