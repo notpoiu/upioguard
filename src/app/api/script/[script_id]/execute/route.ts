@@ -275,7 +275,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         is_mobile: is_mobile == "true" ? true : false,
       });
       return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
-  Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+  Reason: ${banned_users_resp[0].reason ?? "No reason provided"}`, is_discord_enabled, discord_link));
     }
 
     const is_temp_ban = (banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
@@ -307,7 +307,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
   Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
   
-  Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+  Reason: ${banned_users_resp[0].reason ?? "No reason provided"}`, is_discord_enabled, discord_link));
       } else {
         await db.delete(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
       }
