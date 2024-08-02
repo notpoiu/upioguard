@@ -4,9 +4,10 @@ local start_time = os.time()
 if not getgenv() then error("Your executor does not support getgenv()") end
 getgenv().UPIOGUARD_INTERNAL_MESSAGE = console.custom_console_progressbar({
   msg = "[upioguard]: Initializing...",
-  length = 2
+  length = 4
 })
 
+UPIOGUARD_INTERNAL_MESSAGE.update_progress(1)
 pcall(restorefunction, clonefunction)
 pcall(restorefunction,cloneref)
 local clonef = clonefunction or function(f) return function(...) return f(...) end end
@@ -23,6 +24,8 @@ local _restorefunction = clonef(restorefunction or function(f) return function(.
 pcall(_restorefunction,_restorefunction)
 pcall(_restorefunction,clonef)
 pcall(_restorefunction,cloner)
+
+UPIOGUARD_INTERNAL_MESSAGE.update_progress(2)
 
 local _identify_executor = clonef(identifyexecutor or getexecutorname or function() return "unknown" end)
 local req = clonef(_req)
@@ -53,6 +56,8 @@ function is_tampered_with(obj)
   end
 end
 
+UPIOGUARD_INTERNAL_MESSAGE.update_progress(3)
+
 if (is_tampered_with(loadstring) or is_tampered_with(loadstr)) then
   assert(false, "loadstring/loadstr tampered with")
 end
@@ -82,7 +87,7 @@ pcall(function()
   game_name = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", "")
 end)
 
-UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 2)
+UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 4)
 
 local response = req({
   Url = "${origin}/api/script/${script_id}",
@@ -99,6 +104,6 @@ local response = req({
   }
 })
 
-UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " seconds", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
+UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " s", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
 getgenv().UPIOGUARD_INTERNAL_MESSAGE = nil
 loadstr(response.Body)()
