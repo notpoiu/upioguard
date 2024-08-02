@@ -15,6 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useProjectData } from "../components/project_data_provider";
 import { DataTable } from "./tables/key_data_table";
 import { columns, sample_key_data } from "./tables/table_types";
+import { Key } from "@/db/schema";
+import { useEffect, useState } from "react";
+import { get_script_keys } from "../../server";
 
 /*
   const { 
@@ -29,6 +32,14 @@ import { columns, sample_key_data } from "./tables/table_types";
 export default function Keys({params}: {params: {project_id: string}}) {
   const { data } = useProjectData();
 
+  const [keyData, setKeyData] = useState<Key[]>([]);
+
+  useEffect(() => {
+    get_script_keys(params.project_id).then((data) => {
+      setKeyData(data as Key[]);
+    });
+  }, []);
+
   return (
     <main className="overflow-x-visible">
       <Card className="w-[full]">
@@ -37,7 +48,7 @@ export default function Keys({params}: {params: {project_id: string}}) {
           <CardDescription>Create and manage keys for your script</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable columns={columns} data={sample_key_data} />
+          <DataTable columns={columns} data={keyData} />
         </CardContent>
         <CardFooter>
         </CardFooter>

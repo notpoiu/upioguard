@@ -243,6 +243,6 @@ export async function get_script_keys(project_id: string) {
 
   await validate_permissions(project_id);
 
-  const project_data = await db.select().from(project_api_keys).where(eq(project_api_keys.project_id, project_id));
-  return project_data;
+  const user_data = await db.select().from(users).where(eq(users.project_id, project_id));
+  return user_data;
 }
