@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
 
 import {
   Card,
@@ -17,11 +17,11 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { fetch_project_executions, get_total_executions } from "../../server"
-import NumberTicker from "@/components/magicui/number-ticker"
+import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
-import Confetti, { ConfettiButton, ConfettiRef } from "@/components/magicui/confetti"
+import NumberTicker from "@/components/magicui/number-ticker"
+import { toast } from "sonner"
 
 const chartConfig = {
   views: {
@@ -37,9 +37,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function AnalyticsComponent({ project_id }: { project_id: string }) {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("desktop")
+export function AnalyticsChartComponent({project_id}: { project_id: string }) {
+  const [activeChart, setActiveChart] = React.useState<keyof typeof chartConfig>("desktop")
+  const [first, setFirst] = React.useState<boolean>(true);
 
   const [lastMonth_total, setLastMonthTotal] = React.useState<number>(0);
   const [thisMonth_total, setThisMonthTotal] = React.useState<number>(0);
@@ -48,37 +48,72 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
   const [chartData, setChartData] = React.useState<any[]>([]);
   const [total_executions, setTotalExecutions] = React.useState<number>(0);
 
-  React.useEffect(() => {    
+  function updateChartData() {
     get_total_executions(project_id).then((data) => {      
       setTotalExecutions(data[0].count);
-    });   
-  }, [project_id]);
+    });
 
-
-  React.useEffect(() => {
     fetch_project_executions(project_id).then((data) => {
       setRawExecutionData(data);
 
-      setLastMonthTotal(data.filter((execution) => execution.execution_timestamp.getMonth() === new Date().getMonth() - 1).length);
-      setThisMonthTotal(data.filter((execution) => execution.execution_timestamp.getMonth() === new Date().getMonth()).length);
+      setLastMonthTotal(data.filter((execution) => new Date(execution.execution_timestamp).getMonth() === new Date().getMonth() - 1).length);
+      setThisMonthTotal(data.filter((execution) => new Date(execution.execution_timestamp).getMonth() === new Date().getMonth()).length);
 
+      function normalizeToUTC(date: Date): string {
+        const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        return utcDate.toISOString().split("T")[0];
+      }
+
+      let organized_data_test: any = {};
       let organized_data: any[] = [];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - date.getDay() + i - 1);
+        organized_data_test[normalizeToUTC(date)] = {
+          desktop: 0,
+          mobile: 0,
+        };
+      }
+
       for (const execution of data) {
-        const date = execution.execution_timestamp.toISOString().split("T")[0];
-        if (!organized_data.find((data) => data.date === date)) {
-          organized_data.push({ date: date, desktop: 0, mobile: 0 });
+        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp));
+
+        if (!organized_data_test[executionDate]) {
+          continue;
         }
 
-        if (execution.execution_type === "desktop") {
-          organized_data.find((data) => data.date === date).desktop += 1;
-        } else if (execution.execution_type === "mobile") {
-          organized_data.find((data) => data.date === date).mobile += 1;
-        }
+        organized_data_test[executionDate][execution.execution_type] += 1;
+      }
+
+      for (const date in organized_data_test) {
+        organized_data.push({
+          date: date,
+          desktop: organized_data_test[date].desktop,
+          mobile: organized_data_test[date].mobile,
+        });
       }
 
       setChartData(organized_data);
     });
-  }, [project_id]);
+  }
+
+  React.useEffect(() => {    
+    updateChartData();
+    
+    setTimeout(() => {
+      setFirst(false);
+    }, 5000);
+
+    setInterval(() => {
+      updateChartData();
+    }, 30 * 1000);
+  }, []);
+
+  React.useEffect(() => {    
+    if (first) return;
+    toast.success("Updated chart data")
+  }, [rawExecutionData]);
 
   const total = React.useMemo(
     () => ({
@@ -154,7 +189,7 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
           <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
             <CardTitle>Script Executions</CardTitle>
             <CardDescription>
-              Showing total script executions for the last 3 months
+              Showing total script executions for the last week
             </CardDescription>
           </div>
           <div className="flex">
@@ -164,14 +199,14 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
                 <button
                   key={chart}
                   data-active={activeChart === chart}
-                  className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                  className="flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
                   onClick={() => setActiveChart(chart)}
                 >
                   <span className="text-xs text-muted-foreground">
                     {chartConfig[chart].label}
                   </span>
                   <span className="text-lg font-bold leading-none sm:text-3xl">
-                    {total[key as keyof typeof total].toLocaleString("en-US")}
+                    {total[key as keyof typeof total].toLocaleString()}
                   </span>
                 </button>
               )
@@ -179,13 +214,11 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
           </div>
         </CardHeader>
         <CardContent className="px-2 sm:p-6">
-          {chartData.length === 0 ? <div className="flex flex-col items-center justify-center gap-2 text-center text-muted-foreground  min-h-[250px]">
-            <p>No data available, please wait for the script to be executed for the first time.</p>
-          </div> : <ChartContainer
+          <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"
           >
-            <BarChart
+            <LineChart
               accessibilityLayer
               data={chartData}
               margin={{
@@ -223,13 +256,17 @@ export function AnalyticsComponent({ project_id }: { project_id: string }) {
                   />
                 }
               />
-              <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-            </BarChart>
-          </ChartContainer>}
+              <Line
+                dataKey={activeChart}
+                type="monotone"
+                stroke={`var(--color-${activeChart})`}
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ChartContainer>
         </CardContent>
       </Card>
-
-      
     </>
   )
 }
