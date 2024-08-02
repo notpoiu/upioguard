@@ -1,3 +1,12 @@
+local console = loadstring(game:HttpGet("https://raw.githubusercontent.com/notpoiu/Scripts/main/utils/console/main.lua"))() -- https://docs.upio.dev/
+local start_time = os.time()
+
+if not getgenv() then error("Your executor does not support getgenv()") end
+getgenv().UPIOGUARD_INTERNAL_MESSAGE = console.custom_console_progressbar({
+  msg = "[upioguard]: Initializing...",
+  length = 2
+})
+
 pcall(restorefunction, clonefunction)
 pcall(restorefunction,cloneref)
 local clonef = clonefunction or function(f) return function(...) return f(...) end end
@@ -73,6 +82,8 @@ pcall(function()
   game_name = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", "")
 end)
 
+UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 2)
+
 local response = req({
   Url = "${origin}/api/script/${script_id}",
   Method = "GET",
@@ -88,4 +99,6 @@ local response = req({
   }
 })
 
+UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " seconds", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
+getgenv().UPIOGUARD_INTERNAL_MESSAGE = nil
 loadstr(response.Body)()
