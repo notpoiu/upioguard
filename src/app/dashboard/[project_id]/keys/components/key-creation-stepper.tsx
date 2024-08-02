@@ -35,6 +35,7 @@ import { useRouter } from "next/navigation";
 import { useProjectData } from "../../components/project_data_provider";
 import { toast } from "sonner";
 
+import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 
 export default function KeyCreationStepper({set_open, refresh}: { set_open: (is_open: boolean) => void, refresh: () => void}) {
 
@@ -171,7 +172,7 @@ const Footer = ({callback}: {callback: () => void}) => {
   const router = useRouter();
 
 	return (
-		<>
+		<div className="flex flex-row gap-2">
 			<div className="w-full flex justify-start gap-2">
 				{hasCompletedAllSteps ? (
 					<Button size="sm" onClick={() => {
@@ -201,6 +202,10 @@ const Footer = ({callback}: {callback: () => void}) => {
 					</>
 				)}
 			</div>
-		</>
+
+      <div className="w-full flex justify-end gap-2">
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+      </div>
+		</div>
 	);
 };
