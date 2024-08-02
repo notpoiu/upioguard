@@ -314,3 +314,23 @@ export async function modify_key_note(project_id: string, key: string, note: str
 
   await db.update(users).set({ note: note }).where(eq(users.key, key));
 }
+
+export async function delete_account() {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_admin_account();
+  
+  const project_data = await db.select().from(project).where(eq(project.author_id, session.user.id));
+  for (const project of project_data) {
+    await db.delete(project_executions).where(eq(project_executions.project_id, project.project_id));
+    await db.delete(project_api_keys).where(eq(project_api_keys.project_id, project.project_id));
+    await db.delete(project_admins).where(eq(project_admins.project_id, project.project_id));
+    await db.delete(users).where(eq(users.project_id, project.project_id));
+  }
+  
+  await db.delete(admins).where(eq(admins.discord_id, session.user.id));
+}

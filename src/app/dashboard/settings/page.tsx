@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { get_projects_owned_by_user } from "../server";
+import { delete_account, get_projects_owned_by_user } from "../server";
 import { PageContainer } from "@/components/ui/page-container";
 import { User } from "next-auth";
 import Project_Navbar from "../components/projects_navbar";
@@ -10,8 +10,23 @@ import { Separator } from "@/components/ui/separator";
 import RelinkDiscord from "./components/relink_discord";
 import { Button } from "@/components/ui/button";
 import ApiKeysSettings from "./components/api_keys_settings";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import DeleteAccount from "./components/delete_account";
 
 export default async function SettingsPage() {
+
   const session = await auth();
   const project_data = await get_projects_owned_by_user();
 
@@ -59,6 +74,8 @@ export default async function SettingsPage() {
                 </Card>
 
                 <RelinkDiscord />
+
+                <DeleteAccount />
               </TabsContent>
               <TabsContent value="developer">
                 <ApiKeysSettings projects={project_data} />
