@@ -51,18 +51,23 @@ pcall(_restorefunction,isfunctionhooked)
 local _isfunctionhooked = clonef(isfunctionhooked)
 
 function is_tampered_with(obj)
-  if _islclosure(obj) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
-    return true
-  end
+  local resp, errormsg = pcall(function()
+    if _islclosure(obj) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
+      return true
+    end
+  end)
+
+  assert(resp, "[upioguard]: Error while checking if object is tampered with: " .. errormsg)
+  return resp
 end
 
 UPIOGUARD_INTERNAL_MESSAGE.update_progress(3)
 
-if (is_tampered_with(loadstring) or is_tampered_with(loadstr)) then
+if (is_tampered_with(loadstring)) then
   assert(false, "loadstring/loadstr tampered with")
 end
 
-if (is_tampered_with(clonef) or is_tampered_with(cloner) or is_tampered_with(clonefunction) or is_tampered_with(cloneref)) then
+if (is_tampered_with(clonefunction) or is_tampered_with(cloneref)) then
   assert(false, "clonef/cloner/clonefunction/cloneref tampered with")
 end
 
@@ -70,8 +75,8 @@ if (is_tampered_with(restorefunction)) then
   assert(false, "restorefunction tampered with")
 end
 
-if (is_tampered_with(req) or is_tampered_with(_req)) then
-  assert(false, "req/req tampered with")
+if (is_tampered_with(req)) then
+  assert(false, "request tampered with")
 end
 
 local InputService = cloner(game:GetService("UserInputService"))
