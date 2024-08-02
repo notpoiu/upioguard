@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { useProjectData } from "../components/project_data_provider";
 import { DataTable } from "./tables/key_data_table";
-import { Key } from "@/db/schema";
 import { useEffect, useState } from "react";
 import { get_script_keys } from "../../server";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
