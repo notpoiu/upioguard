@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { banned_users } from "@/db/schema";
 import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest, params: { script_id: string }) {
+export async function POST(req: NextRequest, {params}: {  params: { script_id: string } }) {
   let { hwid, reason, expiration } = await req.json();
 
   if (!hwid) {

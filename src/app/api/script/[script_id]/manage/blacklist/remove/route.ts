@@ -7,7 +7,7 @@ import { banned_users } from "@/db/schema";
 import { NextResponse } from "next/server";
 import { validate_permissions } from "@/app/dashboard/server";
 
-export async function POST(req: NextRequest, params: { script_id: string }) {
+export async function POST(req: NextRequest) {
   let { hwid } = await req.json();
 
   await db.delete(banned_users).where(eq(banned_users.hwid, hwid));
