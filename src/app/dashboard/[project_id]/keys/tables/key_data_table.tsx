@@ -6,6 +6,8 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  getFilteredRowModel,
+  ColumnFiltersState,
 } from "@tanstack/react-table"
 
 import {
@@ -26,10 +28,19 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Key } from "@/db/schema";
-import { MoreHorizontal } from "lucide-react";
+import { FilterIcon, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverTrigger } from "@radix-ui/react-popover"
+import { PopoverContent } from "@/components/ui/popover"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface DataTableProps<TData, TValue> {
   refresh: () => void;
@@ -47,6 +58,11 @@ export function DataTable<TData, TValue>({
   const [editNoteKey, setEditNoteKey] = React.useState<Key | null>(null);
   const [newNote, setNewNote] = React.useState("");
 
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+
+  const [currentFilter, setCurrentFilter] = React.useState<string>("username");
 
   const columns: ColumnDef<Key>[] = [
     {
@@ -227,8 +243,11 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       rowSelection,
+      columnFilters,
     }
   })
 
@@ -265,6 +284,27 @@ export function DataTable<TData, TValue>({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <div className="flex items-center mb-2">
+        <Input
+          placeholder={`Search by ${currentFilter}`}
+          value={(table.getColumn(currentFilter)?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn(currentFilter)?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+        <Select onValueChange={(value) => setCurrentFilter(value as string)} value={currentFilter}>
+          <SelectTrigger className="w-auto px-4 ml-2">
+            <FilterIcon className="h-4 w-4 mr-3" /> <SelectValue placeholder="Filter" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="username">Username</SelectItem>
+            <SelectItem value="key">Key</SelectItem>
+            <SelectItem value="note">Note</SelectItem>
+            <SelectItem value="hwid">HWID</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

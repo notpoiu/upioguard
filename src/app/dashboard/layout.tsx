@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project_admins, admins, project } from "@/db/schema";
+import { project_admins, admins, project, users } from "@/db/schema";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
@@ -21,9 +21,9 @@ export default async function DashLayout({
     return notFound();
   }
 
-  const is_admin = await db.select().from(project_admins).where(sql`${project_admins.discord_id} = ${session.user.id}`);
-
-  if (is_admin.length === 0) {
+  const does_exist = await db.select().from(users).where(eq(users.discord_id, session.user.id));
+  
+  if (does_exist.length === 0) {
     return notFound();
   }
 
