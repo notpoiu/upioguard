@@ -47,7 +47,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
               "fields": [
                 {
                   "name": "Roblox Info",
-                  "value": "```json\n{\n  \"username\": \"" + webhook_data.username + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
+                  "value": "```json\n{\n  \"username\": \"" + webhook_data.rbxlusername + "\",\n  \"userid\": \"" + webhook_data.rbxluserid + "\",\n  \"placeid\": \"" + webhook_data.rbxlplaceid + "\",\n  \"jobid\": \"" + webhook_data.rbxljobid + "\",\n  \"game_name\": \"" + webhook_data.rbxlgamename + "\"\n}\n```",
                   "inline": true
                 },
                 {
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
     const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
 
-    if (!key) {
+    if (!key || key.trim() == "undefined") {
       return new Response(error_script);
     }
 
@@ -212,7 +212,8 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       rbxljobid: jobid,
       rbxlgamename: gamename,
       executor: executor,
-      is_mobile: is_mobile,
+      key: key,
+      is_mobile: is_mobile == "true" ? true : false,
     });
 
     try {
@@ -262,7 +263,7 @@ ${content}`);
       expiry: "nil",
     }
 
-    if (key) {
+    if (key && key.trim() != "undefined") {
       const user_resp = await db.select().from(users).where(eq(users.key, key));
 
       if (user_resp.length == 0) {
@@ -313,7 +314,8 @@ ${content}`);
         rbxlgamename: gamename,
         rbxluserid: userid,
         executor: executor,
-        ismobile: is_mobile,
+        ismobile: is_mobile == "true" ? true : false,
+        key: key,
       });
     } else {
       await collect_analytics(project_data.project_id, null, project_data.discord_webhook, {
@@ -329,7 +331,8 @@ ${content}`);
         rbxljobid: jobid,
         rbxlgamename: gamename,
         executor: executor,
-        is_mobile: is_mobile,
+        is_mobile: is_mobile == "true" ? true : false,
+        key: key,
       });
     }
     
