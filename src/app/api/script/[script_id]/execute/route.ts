@@ -124,33 +124,8 @@ const headers_in_use = [
 ]
 
 async function fetch_script(octokit: Octokit, project_data: any, user_data: any, fingerprint: string) {
-
   const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
   const discord_link = project_data.discord_link ?? "";
-
-  const banned_users_resp = await db.select().from(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
-
-
-  const is_perm_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
-
-  if (is_perm_ban) {
-    return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
-Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
-  }
-
-  const is_temp_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
-
-  if (is_temp_ban) {
-    const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
-    const now = new Date();
-
-    if (expires < now) {
-      return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
-Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
-
-Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
-    }
-  }
 
   try {
     const response = await octokit.repos.getContent({
@@ -222,11 +197,34 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     auth: project_data.github_token,
   });
 
+  const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
+  const discord_link = project_data.discord_link ?? "";
+
+  const banned_users_resp = await db.select().from(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
+
+  const is_perm_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
+
+  if (is_perm_ban) {
+    return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
+Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+  }
+
+  const is_temp_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
+
+  if (is_temp_ban) {
+    const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
+    const now = new Date();
+
+    if (expires < now) {
+      return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
+Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
+
+Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+    }
+  }
+
 
   if (project_data.project_type == "paid") {
-    const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
-    const discord_link = project_data.discord_link ?? "";
-
     const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
 
     if (!key || key.trim() == "undefined") {
@@ -282,9 +280,6 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
   // handle free projects
   if (project_data.project_type == "free-paywall") {
-    const is_discord_enabled = project_data.discord_link != null;
-    const discord_link = project_data.discord_link ?? "";
-
     const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
 
     let data = {
