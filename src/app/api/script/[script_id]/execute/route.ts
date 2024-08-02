@@ -252,42 +252,12 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
   const banned_users_resp = await db.select().from(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
 
-  const is_perm_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
-
-  if (is_perm_ban) {
-    const user_resp = await db.select().from(users).where(eq(users.key, key));
-    const user_data = user_resp[0];
-
-    await ban_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
-      username: user_data.username,
-      userid: user_data.discord_id,
-      hwid: fingerprint,
-      script_name: project_data.name,
-      is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
-      expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
-      rbxlusername: username,
-      rbxluserid: userid,
-      rbxlplaceid: placeid,
-      rbxljobid: jobid,
-      rbxlgamename: gamename,
-      executor: executor,
-      key: key,
-      is_mobile: is_mobile == "true" ? true : false,
-    });
-    return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
-Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
-  }
-
-  const is_temp_ban = (banned_users_resp.length > 0 && banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
-
-  if (is_temp_ban) {
-    const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
-    const now = new Date();
-
-    if (expires < now) {
+  if (banned_users_resp.length > 0) {
+    const is_perm_ban = (banned_users_resp[0].expires === null || banned_users_resp[0].expires === undefined);
+    if (is_perm_ban) {
       const user_resp = await db.select().from(users).where(eq(users.key, key));
       const user_data = user_resp[0];
-
+  
       await ban_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
         username: user_data.username,
         userid: user_data.discord_id,
@@ -304,11 +274,43 @@ Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
         key: key,
         is_mobile: is_mobile == "true" ? true : false,
       });
+      return new Response(kick_script("upioguard", `You have been permanently blacklisted from this script
+  Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+    }
 
-      return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
-Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
-
-Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+    const is_temp_ban = (banned_users_resp[0].expires !== null && banned_users_resp[0].expires !== undefined);
+    if (is_temp_ban) {
+      const expires = new Date(banned_users_resp[0].expires ?? new Date(Date.now() + 5000 * 60 * 60 * 24));
+      const now = new Date();
+  
+      if (expires < now) {
+        const user_resp = await db.select().from(users).where(eq(users.key, key));
+        const user_data = user_resp[0];
+  
+        await ban_analytics(project_data.project_id, user_data.discord_id, project_data.discord_webhook, {
+          username: user_data.username,
+          userid: user_data.discord_id,
+          hwid: fingerprint,
+          script_name: project_data.name,
+          is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
+          expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
+          rbxlusername: username,
+          rbxluserid: userid,
+          rbxlplaceid: placeid,
+          rbxljobid: jobid,
+          rbxlgamename: gamename,
+          executor: executor,
+          key: key,
+          is_mobile: is_mobile == "true" ? true : false,
+        });
+  
+        return new Response(kick_script("upioguard", `You have been temporarily blacklisted from this script
+  Unavailable until: ${expires.toLocaleString()} at UTC ${expires.getTimezoneOffset()}
+  
+  Reason: ${banned_users_resp[0].reason}`, is_discord_enabled, discord_link));
+      } else {
+        await db.delete(banned_users).where(sql`${banned_users.project_id} = ${project_data.project_id} AND ${banned_users.hwid} = ${fingerprint}`);
+      }
     }
   }
 
