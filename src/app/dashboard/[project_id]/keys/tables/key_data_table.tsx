@@ -217,6 +217,7 @@ export function DataTable<TData, TValue>({
   ]
 
   const table = useReactTable({
+    //@ts-ignore
     data,
     //@ts-ignore
     columns,
