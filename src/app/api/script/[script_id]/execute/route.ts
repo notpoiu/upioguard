@@ -1,7 +1,7 @@
 // TODO: rewrite this api route
 
 import { db } from "@/db";
-import { project, project_executions, users } from "@/db/schema";
+import { banned_users, project, project_executions, users } from "@/db/schema";
 import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
@@ -122,6 +122,48 @@ const headers_in_use = [
   "upioguard-ismobile"
 ]
 
+async function fetch_script(octokit: Octokit, project_data: any, user_data: any, fingerprint: string) {
+  const banned_users_resp = await db.select().from(banned_users).where(eq(banned_users.hwid, fingerprint));
+
+  if (banned_users_resp.length > 0) {
+    return new Response(kick_script("upioguard", `You have been banned from using this script
+Reason: ${banned_users_resp[0].reason}`, project_data.is_discord_enabled, project_data.discord_link));
+  }
+
+  const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
+  const discord_link = project_data.discord_link ?? "";
+
+  try {
+    const response = await octokit.repos.getContent({
+      owner: project_data.github_owner,
+      repo: project_data.github_repo,
+      path: project_data.github_path,
+    });
+
+    if (response.status !== 200) {
+        return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
+    }
+
+    // @ts-ignore
+    const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
+
+    return new Response(`assert(getgenv, "getgenv not found, ${project_data.name} could not be run.")
+getgenv().upioguard = {
+username = "${user_data.username.replaceAll('"', '\\"')}",
+userid = "${user_data.discord_id}",
+note = "${user_data.note?.replaceAll('"', '\\"')}",
+hwid = "${fingerprint}",
+script_name = "${project_data.name}",
+${user_data.key_expires ? `  expiry = os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000},` : ""}
+is_premium = true,
+}
+
+${content}`);
+  } catch (error) {
+    return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
+  }
+}
+
 export async function GET(request: NextRequest, {params}: {params: {script_id: string}}) {
   const headers_dict = Object.fromEntries(request.headers.entries());
   const fingerprint = get_hwid(request.headers);
@@ -216,35 +258,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       is_mobile: is_mobile == "true" ? true : false,
     });
 
-    try {
-      const response = await octokit.repos.getContent({
-        owner: project_data.github_owner,
-        repo: project_data.github_repo,
-        path: project_data.github_path,
-      });
-
-      if (response.status !== 200) {
-          return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
-      }
-  
-      // @ts-ignore
-      const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
-
-      return new Response(`assert(getgenv, "getgenv not found, ${project_data.name} could not be run.")
-getgenv().upioguard = {
-  username = "${user_data.username.replaceAll('"', '\\"')}",
-  userid = "${user_data.discord_id}",
-  note = "${user_data.note?.replaceAll('"', '\\"')}",
-  hwid = "${fingerprint}",
-  script_name = "${project_data.name}",
-${user_data.key_expires ? `  expiry = os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000},` : ""}
-  is_premium = true,
-}
-
-${content}`);
-    } catch (error) {
-      return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
-    }
+    return await fetch_script(octokit, project_data, user_data, fingerprint);
   }
 
   // handle free projects
