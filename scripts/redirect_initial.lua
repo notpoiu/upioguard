@@ -59,7 +59,7 @@ function is_tampered_with(obj)
     return false
   end)
 
-  assert(success, "[upioguard]: Error while checking if object is tampered with: " .. response)
+  assert(success, "[upioguard]: Error while checking if object is tampered with: " .. tostring(response))
   return response
 end
 
