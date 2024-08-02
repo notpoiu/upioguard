@@ -38,7 +38,7 @@ function get_hwid(headersList: Headers) {
 }
 
 async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
-  try {
+  /*try {
     if (webhook_url && webhook_url.trim() != "") {
       const response = await fetch(webhook_url, {
         method: "POST",
@@ -94,7 +94,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     });
      * 
-     */
+     *
 
     const sql_query = db.insert(project_executions).values({
       discord_id: discord_id,
@@ -111,7 +111,7 @@ async function collect_analytics(project_id: string,discord_id?: string | null, 
       project_id: project_id,
       execution_type: (webhook_data.is_mobile == "true") ? "mobile" : "desktop"
     }));
-  }
+  }*/
 }
 
 function validate_header(header_key: string, headers_dict: any) {
