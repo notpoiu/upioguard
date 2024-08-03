@@ -18,8 +18,11 @@ export const project = pgTable("project", {
   github_path: text("github_path").notNull(),
   github_token: text("github_token").notNull(),
 
-  // in minutes
+  // in hours
   linkvertise_key_duration: numeric("linkvertise_key_duration").notNull().default("1"),
+
+  // in seconds
+  minimum_checkpoint_switch_duration: numeric("minimum_checkpoint_duration").notNull().default("15"),
   
   discord_webhook: text("discord_webhook"),
   discord_link: text("discord_link"),
@@ -50,6 +53,8 @@ export interface Project {
   author_id: string;
   linkvertise_key_duration: string;
   project_type: "free-paywall" | "paid";
+
+  minimum_checkpoint_switch_duration: string;
 
   github_owner: string;
   github_repo: string;
