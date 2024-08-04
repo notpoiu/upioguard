@@ -6,7 +6,6 @@ import path from "path";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { project, project_api_keys } from "./db/schema";
-import { notFound } from "next/navigation";
 import { validate_permissions } from "./app/dashboard/server";
 import { headers } from "next/headers";
 

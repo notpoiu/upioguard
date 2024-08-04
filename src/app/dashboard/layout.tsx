@@ -21,8 +21,11 @@ export default async function DashLayout({
     return notFound();
   }
 
-  const does_exist = await db.select().from(users).where(eq(users.discord_id, session.user.id));
-  
+  const does_exist = await db
+    .select()
+    .from(admins)
+    .where(eq(admins.discord_id, session.user.id));
+
   if (does_exist.length === 0) {
     return notFound();
   }

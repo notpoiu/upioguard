@@ -16,6 +16,7 @@ interface BlurFadeProps {
   inView?: boolean;
   inViewMargin?: string;
   blur?: string;
+  direction?: 'up' | 'down';
 }
 
 export default function BlurFade({
@@ -28,13 +29,15 @@ export default function BlurFade({
   inView = false,
   inViewMargin = "-50px",
   blur = "6px",
+  direction = 'up',
 }: BlurFadeProps) {
   const ref = useRef(null);
-  const inViewResult = useInView(ref, { once: true});
+  const inViewResult = useInView(ref, { once: true });
   const isInView = !inView || inViewResult;
+  const yOffsetValue = direction === 'up' ? yOffset : -yOffset;
   const defaultVariants: Variants = {
-    hidden: { y: yOffset, opacity: 0, filter: `blur(${blur})` },
-    visible: { y: -yOffset, opacity: 1, filter: `blur(0px)` },
+    hidden: { y: yOffsetValue, opacity: 0, filter: `blur(${blur})` },
+    visible: { y: 0, opacity: 1, filter: `blur(0px)` },
   };
   const combinedVariants = variant || defaultVariants;
   return (

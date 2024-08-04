@@ -1,3 +1,4 @@
+import { check } from "drizzle-orm/mysql-core";
 import { pgTable, text, timestamp, numeric, pgEnum, boolean, integer } from "drizzle-orm/pg-core";
 
 export const type = pgEnum("type", ["free-paywall","paid"]);
@@ -42,8 +43,17 @@ export interface ProjectApiKey {
   creator_id: string;
 }
 
-// TODO: add checkpoints table
+export const checkpoints = pgTable("checkpoints", {
+  project_id: text("project_id").notNull(),
+  checkpoint_url: text("checkpoint_id").notNull(),
+  checkpoint_index: numeric("checkpoint_index").notNull().default("0"),
+});
 
+export interface Checkpoint {
+  project_id: string;
+  checkpoint_url: string;
+  checkpoint_index: string;
+}
 
 export interface Project {
   project_id: string;
@@ -91,6 +101,7 @@ export interface BannedUser {
   expires: Date | undefined;
 }
 
+// key expires would be the date where the checkpoint key was created
 export const users = pgTable("users", {
   project_id: text("project_id").notNull(),
   discord_id: text("discord_id").notNull(),
@@ -101,6 +112,7 @@ export const users = pgTable("users", {
   key_type: key_type("key_type"),
   hwid: text("hwid"),
   executor: text("executor"),
+  checkpoint_index: numeric("checkpoint_index").notNull().default("0"),
 });
 
 export interface Key {

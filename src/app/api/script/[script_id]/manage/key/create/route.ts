@@ -3,7 +3,7 @@ import { users } from "@/db/schema";
 import { randomString, getRandomArbitrary } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-function generate_key() {
+export function generate_key() {
   return "upioguard-" + randomString(getRandomArbitrary(10, 15));
 }
 

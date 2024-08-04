@@ -17,14 +17,18 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useProjectData } from "../components/project_data_provider";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { delete_project, update_project } from "../../server";
+import { delete_project, update_project, update_project_checkpoints } from "../../server";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, TrashIcon } from "lucide-react";
 
+import { fetch_checkpoints } from "../../server";
+import { Checkpoint } from "@/db/schema";
+import { Label } from "recharts";
+import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
 
 export default function Settings({params}: {params: {project_id: string}}) {
 
@@ -37,6 +41,13 @@ export default function Settings({params}: {params: {project_id: string}}) {
   const [project_type, setProjectType] = React.useState<"paid" | "free-paywall">(data.project_type ?? "paid");
   const [discord_link, setDiscordLink] = React.useState(data.discord_link ?? null);
   const [discord_webhook, setDiscordWebhook] = React.useState(data.discord_webhook ?? null);
+
+  const [minimum_checkpoint_switch_duration, setMinimumCheckpointSwitchDuration] = React.useState(parseInt(data.minimum_checkpoint_switch_duration) ?? 15);
+  const [checkpoint_key_duration, setCheckpointKeyDuration] = React.useState(parseInt(data.linkvertise_key_duration) ?? 1);
+
+  const [checkpoints, setCheckpoints] = React.useState<Checkpoint[]>([]);
+
+  const [checkpoint_url, setCheckpointUrl] = React.useState("");
 
   const [github_repo, setGithubRepo] = React.useState<{ name: string, owner: string, path: string }>({
     name: data.github_repo ?? "",
@@ -55,6 +66,12 @@ export default function Settings({params}: {params: {project_id: string}}) {
     setDiscordLink(data.discord_link ?? null);
     setDiscordWebhook(data.discord_webhook ?? null);
   }, [data]);
+
+  useEffect(() => {
+    fetch_checkpoints(params.project_id).then((data) => {
+      setCheckpoints(data);
+    });
+  }, []);
 
   function fetch_owner_repo_path(url: string) {
     const url_param_regex = /\?.*/;
@@ -86,6 +103,17 @@ export default function Settings({params}: {params: {project_id: string}}) {
     return ["", "", ""];
   }
 
+  function saveProjectCheckpoints() {
+    toast.promise(update_project_checkpoints(params.project_id, checkpoints), {
+      loading: "Updating project checkpoints...",
+      success: () => {
+        refresh();
+        return "Project checkpoints updated!";
+      },
+      error: "Failed to update project checkpoints",
+    });
+  }
+
   function saveProjectData() {
     const update_data = data;
 
@@ -98,6 +126,24 @@ export default function Settings({params}: {params: {project_id: string}}) {
     update_data.github_path = github_repo.path;
     update_data.github_token = github_token;
 
+    if (minimum_checkpoint_switch_duration < 15) {
+      toast.error("Minimum checkpoint switch duration must be at least 15 seconds");
+      return;
+    }
+
+    if (minimum_checkpoint_switch_duration > 60) {
+      toast.error("Minimum checkpoint switch duration must be less than a minute");
+      return;
+    }
+
+    if (checkpoint_key_duration < 1) {
+      toast.error("Checkpoint key duration must be at least 1 hour");
+      return;
+    }
+
+    update_data.linkvertise_key_duration = checkpoint_key_duration.toString();
+    update_data.minimum_checkpoint_switch_duration = minimum_checkpoint_switch_duration.toString();
+
     toast.promise(update_project(params.project_id, update_data), {
       loading: "Updating project...",
       success: () => {
@@ -107,6 +153,20 @@ export default function Settings({params}: {params: {project_id: string}}) {
       error: "Failed to update project",
     });
   }
+
+  function reorder(list: Checkpoint[], startIndex: number, endIndex: number) {
+    let result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1); // remove the item from the original array
+    result.splice(endIndex, 0, removed); // insert it at the new index
+
+    return result;
+  };
+
+  const onDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) return;
+
+    setCheckpoints(reorder(checkpoints, result.source.index, result.destination.index));
+  }, []);
 
   return (
     <main>
@@ -192,9 +252,141 @@ export default function Settings({params}: {params: {project_id: string}}) {
         <TabsContent value="checkpoint" className="*:mb-5 *:mt-5">
           <Card>
             <CardHeader>
-              <CardTitle>Coming Soon...</CardTitle>
-              <CardDescription>Coming in the next version of upioguard</CardDescription>
+              <CardTitle>Minimum Checkpoint Switch Duration</CardTitle>
+              <CardDescription>Set a minimum duration for switching checkpoints</CardDescription>
             </CardHeader>
+            <CardFooter className="flex flex-col">
+              <Input value={minimum_checkpoint_switch_duration} onChange={(e) => setMinimumCheckpointSwitchDuration(parseInt(e.target.value))} type="number" placeholder="15" max={60} min={15} />
+              <div className="w-full flex justify-between mt-2">
+                <div className="flex justify-center items-center">
+                  <p className="text-xs text-muted-foreground">
+                    This will be the minimum duration for switching checkpoints, in seconds.
+                  </p>
+                </div>
+                <Button size={"sm"} onClick={saveProjectData}>Save</Button>
+              </div>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Checkpoint Key Duration</CardTitle>
+              <CardDescription>Set a duration for the checkpoint key</CardDescription>
+            </CardHeader>
+            <CardFooter className="flex flex-col">
+              <Input value={checkpoint_key_duration} onChange={(e) => setCheckpointKeyDuration(parseInt(e.target.value))} type="number" placeholder="1" min={1} />
+              <div className="w-full flex justify-between mt-2">
+                <div className="flex justify-center items-center">
+                  <p className="text-xs text-muted-foreground">
+                    This will be the duration for the checkpoint key, in hours.
+                  </p>
+                </div>
+                <Button size={"sm"} onClick={saveProjectData}>Save</Button>
+              </div>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Checkpoints</CardTitle>
+              <CardDescription>Create checkpoints</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2 border rounded px-3 py-5">
+                {checkpoints.length == 0 && <p className="text-xs text-muted-foreground">No checkpoints added</p>}
+                
+                {/** TODO: fix cannot drag when no active drag */}
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="droppable-1" direction="vertical" type="checkpoint">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="flex flex-col gap-2 w-full"
+                      >
+                        {checkpoints.map((checkpoint, index) => (
+                          <Draggable
+                            key={`${checkpoint.checkpoint_url}-${index}`}
+                            draggableId={`${checkpoint.checkpoint_url}-${index}`}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <div
+                                key={index}
+                                className="flex flex-row gap-2 items-center"
+                                ref={provided.innerRef}
+                                {...provided.dragHandleProps}
+                                {...provided.draggableProps}
+                              >
+                                <div className="border rounded h-10 min-w-[30px]" />
+                                <div className="flex flex-col w-full">
+                                  <Input value={checkpoint.checkpoint_url} readOnly />
+                                </div>
+                                <Button
+                                  size={"icon"}
+                                  onClick={() => setCheckpoints(checkpoints.filter((_, i) => i !== index))}
+                                >
+                                  <TrashIcon />
+                                </Button>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex flex-col">
+              <div className="w-full flex justify-between mt-2">
+                <div className="flex justify-center items-center">
+                  <p className="text-xs text-muted-foreground">
+                    This will be the duration for the checkpoint key, in hours.
+                  </p>
+                </div>
+                
+                <div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size={"sm"} className="mr-2">Add Checkpoint</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Add Checkpoint</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Enter the checkpoint url
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <Input placeholder="https://linvertise.com/..." value={checkpoint_url} onChange={(e) => setCheckpointUrl(e.target.value)} />
+                      
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                          if (checkpoint_url.trim() == "") {
+                            toast.error("Checkpoint url cannot be empty");
+                            return;
+                          }
+
+                          setCheckpoints([...checkpoints, {
+                            project_id: params.project_id,
+                            checkpoint_url: checkpoint_url,
+                            checkpoint_index: checkpoints.length.toString(),
+                          }]);
+
+                          setCheckpointUrl("");
+                        }}>Add</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <Button size={"sm"} onClick={saveProjectCheckpoints}>Save</Button>
+                </div>
+              </div>
+            </CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="advanced" className="*:mb-5 *:mt-5">

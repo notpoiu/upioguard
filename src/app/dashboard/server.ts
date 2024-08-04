@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project, users, Key, banned_users, BannedUser } from "@/db/schema";
+import { project_admins, project, project_executions, project_api_keys, admins, ProjectApiKey, Project, users, Key, banned_users, BannedUser, checkpoints, Checkpoint } from "@/db/schema";
 import { getRandomArbitrary, randomString } from "@/lib/utils";
 import { count, eq, sql } from "drizzle-orm";
 
@@ -215,6 +215,21 @@ export async function update_project(project_id: string, data: Project) {
 
   await validate_permissions(project_id);
 
+  const minimum_checkpoint_switch_duration = parseInt(data.minimum_checkpoint_switch_duration);
+  if (minimum_checkpoint_switch_duration < 15) {
+    throw new Error("Minimum checkpoint switch duration must be at least 15 seconds");
+  }
+
+  if (minimum_checkpoint_switch_duration > 60) {
+    throw new Error("Minimum checkpoint switch duration must be less than a minute");
+  }
+
+  const checkpoint_key_duration = parseInt(data.linkvertise_key_duration);
+
+  if (checkpoint_key_duration < 1) {
+    throw new Error("Checkpoint key duration must be at least 1 hour");
+  }
+
   await db.update(project).set(data).where(eq(project.project_id, project_id));
 }
 
@@ -306,10 +321,6 @@ export async function reset_hwid(project_id: string, key: string) {
   await db.update(users).set({ hwid: null, executor: null }).where(eq(users.key, key));
 }
 
-// add export when its implemented
-async function ban_hwid(project_id: string, key: string) {
-  // TODO: implement
-}
 
 export async function modify_key_note(project_id: string, key: string, note: string) {
   const session = await auth();
@@ -346,4 +357,37 @@ export async function delete_account() {
   }
   
   await db.delete(admins).where(eq(admins.discord_id, session.user.id));
+}
+
+export async function fetch_checkpoints(project_id: string) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  const checkpoints_data = await db.select().from(checkpoints).where(eq(checkpoints.project_id, project_id));
+  return checkpoints_data as Checkpoint[];
+}
+
+export async function update_project_checkpoints(project_id: string, checkpoints_data: Checkpoint[]) {
+  const session = await auth();
+
+  if (session?.user?.id === undefined) {
+    throw new Error("Unauthorized");
+  }
+
+  await validate_permissions(project_id);
+
+  await db.delete(checkpoints).where(eq(checkpoints.project_id, project_id));
+
+  for (const checkpoint of checkpoints_data) {
+    await db.insert(checkpoints).values({
+      project_id: project_id,
+      checkpoint_url: checkpoint.checkpoint_url,
+      checkpoint_index: checkpoint.checkpoint_index,
+    })
+  }
 }
