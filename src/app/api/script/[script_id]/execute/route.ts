@@ -396,17 +396,23 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       data.note = user_data.note ?? "";
       data.is_premium = true;
       data.expiry = user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil";
-      
+
       if (user_resp[0].project_id != project_data.project_id) {
         data.is_premium = false;
       }
 
-      if (user_data.key_expires && user_data.key_type != "permanent") {
+      if (user_data.key_expires && user_data.key_type == "temporary") {
         if (user_data.key_expires < new Date()) {
           data.is_premium = false;
         }
       }
+
+      const key_duration = parseInt(project_data.linkvertise_key_duration) ?? 1;
+      const expires = user_data.checkpoints_finished_at ?? new Date(0); // if the key is a checkpoint expiry is the time when the checkpoints got finished
+      const is_checkpoint_key_expired = user_data.checkpoints_finsihed && expires < new Date((user_data.checkpoints_finished_at ?? new Date(0)).getTime() + expires.getTime() + (key_duration * 60 * 60 * 1000));
       
+      data.is_premium = !is_checkpoint_key_expired;
+
       if (!user_data.hwid || !user_data.executor) {
         await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
       } else {

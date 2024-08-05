@@ -16,6 +16,10 @@ import { notFound } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
 import { Checkpoint } from "./components/checkpoint";
 import { check } from "drizzle-orm/mysql-core";
+import { KeyHelper } from "@/lib/key_utils";
+import { Key } from "lucide-react";
+import { verify } from "crypto";
+import { verify_turnstile } from "./key_server";
 
 function KeySystemWrapper({
   script_data,
@@ -98,58 +102,69 @@ export default async function KeyPage({
 
   const user_data = user_data_resp[0];
 
-  const key = user_data.key;
-  const key_type = user_data.key_type;
-  const expires = user_data.key_expires ?? new Date(0); // if the key is a checkpoint expiry is the time when the checkpoints got finished
+  const KeyUtility = new KeyHelper(user_data.key, params.script_id);
+  await KeyUtility.init();
 
-  let description_key: string = key_type ?? "checkpoint-not-finished";
+  const [key, key_type] = KeyUtility.get_key();
 
-  const key_duration = parseInt(project_data.linkvertise_key_duration) ?? 1;
-  const is_checkpoint_key_expired = expires < new Date(expires.getTime() + (key_duration * 60 * 60 * 1000));
-  let current_checkpoint_index = parseInt(user_data.checkpoint_index);
+  let current_checkpoint_index = KeyUtility.get_checkpoint_index();
+
+  let description_key: string = KeyUtility.get_key_type() ?? "checkpoint-not-finished";
 
   if (key_type == "checkpoint") {
-    if (current_checkpoint_index == checkpoints_db_response.length && !is_checkpoint_key_expired) {
+    if (KeyUtility.get_checkpoint_index() == checkpoints_db_response.length && !KeyUtility.is_checkpoint_key_expired()) {
       description_key = "checkpoint-finished";
     } else {
       description_key = "checkpoint-not-finished"
     }
   }
 
-  if (key_type == "checkpoint" && is_checkpoint_key_expired) {
-    await db.update(users).set({
-      checkpoint_index: "0"
-    }).where(eq(users.discord_id, session.user.id));
+  // Handle checkpoint key started
+  if (key_type == "checkpoint" && KeyUtility.is_checkpoint_key_started()) {
+    await KeyUtility.start_checkpoint();
     current_checkpoint_index = 0;
   }
 
-  const did_finish_keysystem = current_checkpoint_index == checkpoints_db_response.length && checkpoints_db_response.length != 0;
+  // Intermadiate checkpoint reached
+  const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+  if (key_type == "checkpoint" && KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
+    const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
 
+    if (is_valid) {
+      await KeyUtility.set_checkpoint_index(current_checkpoint_index + 1);
+      current_checkpoint_index++;
+    }
+  } else if (key_type == "checkpoint" && finished_key_system) {
+    await KeyUtility.finish_checkpoint();
+  }
+  
+
+  // handle checkpoint
+  const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
   const host = headers().get("host") ?? "";
-  console.log(checkpoints_db_response);
+
   let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index + 1]?.checkpoint_url;
   
   if (next_checkpoint_url == undefined) {
     next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
   }
 
-  console.log(process.env.NODE_ENV);
   // @ts-ignore
   let description = messages[description_key as "temporary" | "permanent" | "checkpoint" | "checkpoint-finished" | "checkpoint-not-finished"];
-  description = description.replace("{expiry}", expires?.toLocaleString() ?? "permanent");
-  description = description.replace("{time}", ((expires?.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString());
+  description = description.replace("{expiry}", KeyUtility.get_general_expiration()?.toLocaleString() ?? "permanent");
+  description = description.replace("{time}", (((KeyUtility.get_general_expiration()?.getTime() ?? 0) - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString());
 
   return (
     <KeySystemWrapper script_data={project_data} description={description}>
-      {key && key_type == "temporary" || key_type == "permanent" && (
+      {key && (key_type == "temporary" || key_type == "permanent") && (
         <KeyInput key={key}  />
       )}
 
-      {key && key_type == "checkpoint" && !is_checkpoint_key_expired && !did_finish_keysystem && (
+      {key && key_type == "checkpoint" && !KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
         <KeyInput key={key}  />
       )}
 
-      {key && key_type == "checkpoint" && is_checkpoint_key_expired && !did_finish_keysystem && (
+      {key && key_type == "checkpoint" && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
         <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url}  />
       )}
     </KeySystemWrapper>

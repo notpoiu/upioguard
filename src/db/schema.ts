@@ -113,18 +113,25 @@ export const users = pgTable("users", {
   hwid: text("hwid"),
   executor: text("executor"),
   checkpoint_index: numeric("checkpoint_index").notNull().default("0"),
+  checkpoints_finsihed: boolean("key_finsihed").notNull().default(false),
+  checkpoints_finished_at: timestamp("checkpoints_finished_at"),
+  checkpoint_started_at: timestamp("checkpoint_started_at"),
 });
 
 export interface Key {
   project_id: string;
   key: string;
   key_expires: Date | null;
-  key_type: "temporary" | "permanent" | "checkpoint";
+  key_type: "temporary" | "permanent" | "checkpoint" | null;
   discord_id: string;
   username: string;
   note: string | null;
   hwid: string | null;
   executor: string | null;
+  checkpoints_finsihed: boolean;
+  checkpoints_finished_at: Date | null;
+  checkpoint_index: string;
+  checkpoint_started_at: Date | null;
 }
 
 export const project_executions = pgTable("project_executions", {
