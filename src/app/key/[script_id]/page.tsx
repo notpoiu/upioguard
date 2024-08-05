@@ -164,8 +164,13 @@ export default async function KeyPage({
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
 
+    await log(`finished_key_system : ${finished_key_system}`);
+
     if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
+      await log(`!KeyUtility.is_checkpoint_key_expired() && !finished_key_system`);
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
+
+      await log(`is_valid : ${is_valid}`);
       error_key_occured = !is_valid;
     }
 

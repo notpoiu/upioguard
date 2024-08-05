@@ -26,14 +26,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
   const host = (headers().get("host") ?? "localhost:3000").replaceAll("http://", "").replaceAll("https://", "").trim();
 
   if (token == "Invalid token") {
-    return {
-      success: false,
-      challenge_ts: new Date().toISOString(),
-      hostname: host,
-      error_codes: [
-        "upioguard-invalid-token",
-      ]
-    };
+    return false;
   }
 
   if (process.env.NODE_ENV == "development") {
