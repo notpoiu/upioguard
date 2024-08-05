@@ -18,3 +18,7 @@ export function randomString(length: number) {
 export function getRandomArbitrary(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
+
+export function generate_key() {
+  return "upioguard-" + randomString(getRandomArbitrary(10, 15));
+}

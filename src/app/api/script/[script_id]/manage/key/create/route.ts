@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { generate_key } from "@/lib/key_utils";
+import { generate_key } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest, params: { script_id: string }) {
