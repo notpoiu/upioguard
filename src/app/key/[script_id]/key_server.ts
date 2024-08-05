@@ -25,37 +25,37 @@ Example turnstile response
 export async function verify_turnstile(minimum_checkpoint_switch_duration: number) {
   const token = cookies().get("upioguard-turnstile") ?? { value: "Invalid token" };
   const host = (headers().get("host") ?? "localhost:3000").replaceAll("http://", "").replaceAll("https://", "").trim();
-  await log(`token: ${token.value}`);
-  await log(`host: ${host}`);
+
   if (token.value == "Invalid token") {
     return false;
   }
-
-  await log(`env: ${process.env.NODE_ENV}`);
 
   if (process.env.NODE_ENV == "development") {
     return true;
   }
 
-  await log(`secret: ${SECRET_KEY}`);
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify" + new URLSearchParams({
     secret: SECRET_KEY,
     response: token.value,
   }).toString())
-  await log(`response: ${response}`);
-  const JSON_DATA = await response.json();
-  await log(`JSON_DATA: ${JSON_DATA}`);
-  const data =  {
-    success: JSON_DATA.success ?? false,
-    challenge_ts: JSON_DATA.challenge_ts ?? new Date().toISOString(),
-    hostname: JSON_DATA.hostname ?? host,
-    error_codes: JSON_DATA.error_codes ?? [
-      "upioguard-invalid-response",
-    ]
-  };
-  await log(`data: ${data}`);
-  const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
-  return data.success && date_challenge_minimum < new Date().getTime();
+  
+  try {
+    const JSON_DATA = await response.json();
+    const data =  {
+      success: JSON_DATA.success ?? false,
+      challenge_ts: JSON_DATA.challenge_ts ?? new Date().toISOString(),
+      hostname: JSON_DATA.hostname ?? host,
+      error_codes: JSON_DATA.error_codes ?? [
+        "upioguard-invalid-response",
+      ]
+    };
+  
+    const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
+    return data.success && date_challenge_minimum < new Date().getTime();
+  } catch (e) {
+    await log(`error: ${e}`);
+    return false;
+  }
 }
 
 export async function set_cookie_turnstile(token: string, url: string, project_id: string) {
