@@ -29,6 +29,7 @@ import { fetch_checkpoints } from "../../server";
 import { Checkpoint } from "@/db/schema";
 import { Label } from "recharts";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
+import { check } from "drizzle-orm/mysql-core";
 
 export default function Settings({params}: {params: {project_id: string}}) {
 
@@ -165,7 +166,27 @@ export default function Settings({params}: {params: {project_id: string}}) {
   const onDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) return;
 
-    setCheckpoints(reorder(checkpoints, result.source.index, result.destination.index));
+    if (checkpoints.length == 0) {
+      fetch_checkpoints(params.project_id).then((data) => {
+        setCheckpoints(data);
+        console.log(checkpoints)
+        if (result.destination != null) {
+          const order_result = reorder(checkpoints, result.source.index, result.destination.index);
+          console.log(order_result);
+          setCheckpoints(order_result);
+        }
+      });
+    }
+
+    if (result.destination != null) {
+      const order_result = reorder(checkpoints, result.source.index, result.destination.index);
+      console.log(order_result);
+      setCheckpoints(order_result);
+    } else {
+      setCheckpoints(checkpoints.filter((_, i) => i !== result.source.index));
+
+      
+    }
   }, []);
 
   return (
