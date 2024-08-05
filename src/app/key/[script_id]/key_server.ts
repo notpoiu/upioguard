@@ -1,7 +1,11 @@
 "use server";
 
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { auth } from "@/auth";
 
 const SECRET_KEY = process.env.NODE_ENV == "production" ? process.env.TURNSTILE_SECRET_KEY ?? "1x00000000000000000000AA" : "1x00000000000000000000AA";
 
@@ -57,6 +61,13 @@ export async function set_cookie_turnstile(token: string, url: string) {
     sameSite: "strict",
     secure: process.env.NODE_ENV == "production",
   });
+
+  const session = await auth();
+
+  await db.update(users).set({
+    checkpoint_started_at: new Date(),
+    checkpoint_index: "1",
+  }).where(eq(users.discord_id, session?.user?.id ?? "0"));
 
   redirect(url);
 }
