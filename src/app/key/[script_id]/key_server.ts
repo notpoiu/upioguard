@@ -53,7 +53,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
     return data.success && date_challenge_minimum < new Date().getTime();
   } catch (e) {
-    await log(`error: ${e}\nbody: ${await response.text()}`);
+    await log(`error: ${e}\nbody: ${response.body}\nSTATUS: ${response.status}`);
     return false;
   }
 }
