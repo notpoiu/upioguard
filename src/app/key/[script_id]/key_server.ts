@@ -34,7 +34,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     return true;
   }
 
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify" + new URLSearchParams({
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify?" + new URLSearchParams({
     secret: SECRET_KEY,
     response: token.value,
   }).toString())
