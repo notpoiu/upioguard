@@ -56,6 +56,7 @@ export class KeyHelper {
   }
 
   private async internal_init(key: string, project_id: string) {
+    "use server";
     const db_response = await db.select().from(users).where(sql`${users.key} = ${key} AND ${users.project_id} = ${project_id}`);
     this.key_data = db_response[0];
 
@@ -133,6 +134,7 @@ export class KeyHelper {
 
   // Checkpoint Key Setters
   public async set_checkpoint_index(index: number) {
+    "use server";
     this.key_data.checkpoint_index = index.toString();
 
     await db.update(users).set({
@@ -141,6 +143,7 @@ export class KeyHelper {
   }
 
   public async set_checkpoint_finished_at(finished_at: Date) {
+    "use server";
     this.key_data.checkpoints_finished_at = finished_at;
 
     await db.update(users).set({
@@ -149,6 +152,7 @@ export class KeyHelper {
   }
 
   public async start_checkpoint() {
+    "use server";
     const date = new Date();
 
     this.key_data.checkpoint_started_at = date;
