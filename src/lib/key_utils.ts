@@ -60,7 +60,7 @@ class KeyHelper {
     const db_response = await db.select().from(users).where(sql`${users.key} = ${key} AND ${users.project_id} = ${project_id}`);
     this.key_data = db_response[0];
 
-    const project_response = await db.select().from(project).where(eq(users.project_id, project_id));
+    const project_response = await db.select().from(project).where(eq(project.project_id, project_id));
     this.project_data = project_response[0];
   }
 
@@ -123,7 +123,7 @@ class KeyHelper {
 
   public get_checkpoint_expiration(): Date {
     return new Date(
-      this.get_checkpoint_expiration().getTime() ?? 0 +
+      this.get_checkpoint_finished_at().getTime() ?? Date.now() +
       (parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 60 * 1000)
     );
   }

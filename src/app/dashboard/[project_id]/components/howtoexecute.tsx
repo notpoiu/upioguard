@@ -9,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { ClipboardIcon } from "lucide-react";
+import { ClipboardIcon, KeyIcon } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import { toast } from "sonner";
 
@@ -35,6 +36,11 @@ export default function HowToExecute({project_id}: {project_id: string}) {
           </pre>
         </CardContent>
         <CardFooter className="justify-end">
+          <Link href={`/key/${project_id}`} target="_blank">
+            <Button className="mr-2" size={"icon"}>
+              <KeyIcon />
+            </Button>
+          </Link>
           <Button size={"icon"} onClick={() => {
             navigator.clipboard.writeText(`_G.ug_key = "put_key_here"
 loadstring(game:HttpGet("${origin}/scripts/loaders/${project_id}.lua"))()`);

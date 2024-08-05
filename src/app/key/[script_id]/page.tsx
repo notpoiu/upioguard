@@ -105,6 +105,7 @@ export default async function KeyPage({
   const KeyUtility = await create_key_helper(user_data.key, params.script_id);
 
   const [key, key_type] = KeyUtility.get_key();
+  console.log(key, key_type);
 
   let description_key: string = KeyUtility.get_key_type() ?? "checkpoint-not-finished";
   
@@ -157,22 +158,25 @@ export default async function KeyPage({
 
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
-        {key && !KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
+        {key && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem && (
           <KeyInput key={key}  />
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
+        {key && KeyUtility.is_checkpoint_key_expired() || !did_finish_keysystem && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url}  />
         )}
       </KeySystemWrapper>
     )
   }
 
-  return (
-    <KeySystemWrapper script_data={project_data} description={description}>
-      {key && (key_type == "temporary" || key_type == "permanent") && (
-        <KeyInput key={key}  />
-      )}
-    </KeySystemWrapper>
-  );
+  if (key_type == "temporary" || key_type == "permanent") {
+    return (
+      <KeySystemWrapper script_data={project_data} description={description}>
+        {key && (key_type == "temporary" || key_type == "permanent") && (
+          <KeyInput key={key}  />
+        )}
+      </KeySystemWrapper>
+    );
+  }
+  return null;
 }
