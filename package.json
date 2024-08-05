@@ -10,6 +10,8 @@
     "deivid": "next dev --turbo"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
     "@hello-pangea/dnd": "^16.6.0",
     "@marsidev/react-turnstile": "^0.7.2",
     "@octokit/rest": "^21.0.1",

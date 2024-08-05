@@ -24,12 +24,12 @@ import { delete_project, update_project, update_project_checkpoints } from "../.
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { EyeIcon, TrashIcon } from "lucide-react";
+import { DndContext, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 import { fetch_checkpoints } from "../../server";
 import { Checkpoint } from "@/db/schema";
-import { Label } from "recharts";
-import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
-import { check } from "drizzle-orm/mysql-core";
+import { SortableItem } from "./components/sortable";
 
 export default function Settings({params}: {params: {project_id: string}}) {
 
@@ -47,6 +47,9 @@ export default function Settings({params}: {params: {project_id: string}}) {
   const [checkpoint_key_duration, setCheckpointKeyDuration] = React.useState(parseInt(data.linkvertise_key_duration) ?? 1);
 
   const [checkpoints, setCheckpoints] = React.useState<Checkpoint[]>([]);
+  const [organized_checkpoints, setOrganizedCheckpoints] = React.useState<UniqueIdentifier[]>([
+    ...checkpoints.map((checkpoint) => checkpoint.checkpoint_url),
+  ]);
 
   const [checkpoint_url, setCheckpointUrl] = React.useState("");
 
@@ -59,6 +62,12 @@ export default function Settings({params}: {params: {project_id: string}}) {
   const [github_token, setGithubToken] = React.useState(data.github_token ?? "");
 
   const [set_visible_token, setSetVisibleToken] = React.useState(false);
+
+  useEffect(() => {
+    setOrganizedCheckpoints((items) => {
+      return checkpoints.map((checkpoint) => checkpoint.checkpoint_url);
+    });
+  }, [checkpoints]);
 
   useEffect(() => {
     setProjectName(data.name ?? "Unknown");
@@ -155,39 +164,25 @@ export default function Settings({params}: {params: {project_id: string}}) {
     });
   }
 
-  function reorder(list: Checkpoint[], startIndex: number, endIndex: number) {
-    let result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1); // remove the item from the original array
-    result.splice(endIndex, 0, removed); // insert it at the new index
+  function handleDragEnd(event: DragEndEvent) {
+    const {active, over} = event;
+    
+    if (over != null && active.id !== over.id) {
+      setCheckpoints((items) => {
+        const oldIndex = items.findIndex((item) => item.checkpoint_url === active.id);
+        const newIndex = items.findIndex((item) => item.checkpoint_url === over.id);
 
-    return result;
-  };
+        return arrayMove(items, oldIndex, newIndex);
+      });
 
-  const onDragEnd = useCallback((result: DropResult) => {
-    if (!result.destination) return;
+      setOrganizedCheckpoints((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
 
-    if (checkpoints.length == 0) {
-      fetch_checkpoints(params.project_id).then((data) => {
-        setCheckpoints(data);
-        console.log(checkpoints)
-        if (result.destination != null) {
-          const order_result = reorder(checkpoints, result.source.index, result.destination.index);
-          console.log(order_result);
-          setCheckpoints(order_result);
-        }
+        return arrayMove(items, oldIndex, newIndex);
       });
     }
-
-    if (result.destination != null) {
-      const order_result = reorder(checkpoints, result.source.index, result.destination.index);
-      console.log(order_result);
-      setCheckpoints(order_result);
-    } else {
-      setCheckpoints(checkpoints.filter((_, i) => i !== result.source.index));
-
-      
-    }
-  }, []);
+  }
 
   return (
     <main>
@@ -317,47 +312,13 @@ export default function Settings({params}: {params: {project_id: string}}) {
                 {checkpoints.length == 0 && <p className="text-xs text-muted-foreground">No checkpoints added</p>}
                 
                 {/** TODO: fix cannot drag when no active drag */}
-                <DragDropContext onDragEnd={onDragEnd}>
-                  <Droppable droppableId="droppable-1" direction="vertical" type="checkpoint">
-                    {(provided) => (
-                      <div
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                        className="flex flex-col gap-2 w-full"
-                      >
-                        {checkpoints.map((checkpoint, index) => (
-                          <Draggable
-                            key={`${checkpoint.checkpoint_url}-${index}`}
-                            draggableId={`${checkpoint.checkpoint_url}-${index}`}
-                            index={index}
-                          >
-                            {(provided) => (
-                              <div
-                                key={index}
-                                className="flex flex-row gap-2 items-center"
-                                ref={provided.innerRef}
-                                {...provided.dragHandleProps}
-                                {...provided.draggableProps}
-                              >
-                                <div className="border rounded h-10 min-w-[30px]" />
-                                <div className="flex flex-col w-full">
-                                  <Input value={checkpoint.checkpoint_url} readOnly />
-                                </div>
-                                <Button
-                                  size={"icon"}
-                                  onClick={() => setCheckpoints(checkpoints.filter((_, i) => i !== index))}
-                                >
-                                  <TrashIcon />
-                                </Button>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </DragDropContext>
+                <DndContext onDragEnd={handleDragEnd}>
+                  <SortableContext strategy={verticalListSortingStrategy} items={organized_checkpoints}>
+                    {checkpoints.map((checkpoint, index) => (
+                      <SortableItem key={checkpoint.checkpoint_url} id={checkpoint.checkpoint_url} index={index} checkpoint={checkpoint} checkpoints={checkpoints} setCheckpoints={setCheckpoints} />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             </CardContent>
 
