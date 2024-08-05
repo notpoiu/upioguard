@@ -16,10 +16,10 @@ import { notFound } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
 import { Checkpoint } from "./components/checkpoint";
 import { check } from "drizzle-orm/mysql-core";
-import { KeyHelper } from "@/lib/key_utils";
 import { Key } from "lucide-react";
 import { verify } from "crypto";
 import { verify_turnstile } from "./key_server";
+import { create_key_helper } from "@/lib/key_utils";
 
 function KeySystemWrapper({
   script_data,
@@ -102,8 +102,7 @@ export default async function KeyPage({
 
   const user_data = user_data_resp[0];
 
-  const KeyUtility = new KeyHelper(user_data.key, params.script_id);
-  await KeyUtility.init();
+  const KeyUtility = await create_key_helper(user_data.key, params.script_id);
 
   const [key, key_type] = KeyUtility.get_key();
 

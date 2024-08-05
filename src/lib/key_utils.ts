@@ -5,7 +5,7 @@ import { Key, project, Project, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 // I coudnt work with the spaghetti code that i made so uh
-export class KeyHelper {
+class KeyHelper {
   public key_data: Key = {
     key_expires: null,
     key_type: "checkpoint",
@@ -179,4 +179,12 @@ export class KeyHelper {
       checkpoints_finished_at: date,
     }).where(eq(users.discord_id, this.project_id));
   }
+}
+
+// very hacky way (wow thanks vercel!! :D)
+export async function create_key_helper(key: string, project_id: string) {
+  const KeyUtility = new KeyHelper(key, project_id);
+  await KeyUtility.init();
+
+  return KeyUtility;
 }
