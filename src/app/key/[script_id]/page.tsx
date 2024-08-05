@@ -149,11 +149,8 @@ export default async function KeyPage({
     const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     const host = headers().get("host") ?? "";
   
-    let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index + 1]?.checkpoint_url;
-    
-    if (current_checkpoint_index == checkpoints_db_response.length) {
-      next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
-    } else if (current_checkpoint_index < checkpoints_db_response.length) {
+    let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
+    if (current_checkpoint_index < checkpoints_db_response.length) {
       await KeyUtility.finish_checkpoint();
     } else if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
