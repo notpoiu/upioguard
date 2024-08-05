@@ -106,10 +106,8 @@ export default async function KeyPage({
 
   const [key, key_type] = KeyUtility.get_key();
 
-  let current_checkpoint_index = KeyUtility.get_checkpoint_index();
-
   let description_key: string = KeyUtility.get_key_type() ?? "checkpoint-not-finished";
-
+  
   if (key_type == "checkpoint") {
     if (KeyUtility.get_checkpoint_index() == checkpoints_db_response.length && !KeyUtility.is_checkpoint_key_expired()) {
       description_key = "checkpoint-finished";
@@ -118,53 +116,62 @@ export default async function KeyPage({
     }
   }
 
-  // Handle checkpoint key started
-  if (key_type == "checkpoint" && KeyUtility.is_checkpoint_key_started()) {
-    await KeyUtility.start_checkpoint();
-    current_checkpoint_index = 0;
-  }
-
-  // Intermadiate checkpoint reached
-  const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
-  if (key_type == "checkpoint" && KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
-    const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
-
-    if (is_valid) {
-      await KeyUtility.set_checkpoint_index(current_checkpoint_index + 1);
-      current_checkpoint_index++;
-    }
-  } else if (key_type == "checkpoint" && finished_key_system) {
-    await KeyUtility.finish_checkpoint();
-  }
-  
-
-  // handle checkpoint
-  const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
-  const host = headers().get("host") ?? "";
-
-  let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index + 1]?.checkpoint_url;
-  
-  if (next_checkpoint_url == undefined) {
-    next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
-  }
-
   // @ts-ignore
   let description = messages[description_key as "temporary" | "permanent" | "checkpoint" | "checkpoint-finished" | "checkpoint-not-finished"];
   description = description.replace("{expiry}", KeyUtility.get_general_expiration()?.toLocaleString() ?? "permanent");
   description = description.replace("{time}", (((KeyUtility.get_general_expiration()?.getTime() ?? 0) - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString());
 
+
+  if (key_type == "checkpoint") {
+    let current_checkpoint_index = KeyUtility.get_checkpoint_index();
+  
+    // Handle checkpoint key started
+    if (KeyUtility.is_checkpoint_key_started()) {
+      await KeyUtility.start_checkpoint();
+      current_checkpoint_index = 0;
+    }
+  
+    // Intermadiate checkpoint reached
+    const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+    if (KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
+      const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
+  
+      if (is_valid) {
+        await KeyUtility.set_checkpoint_index(current_checkpoint_index + 1);
+        current_checkpoint_index++;
+      }
+    } else if (key_type == "checkpoint" && finished_key_system) {
+      await KeyUtility.finish_checkpoint();
+    }
+    
+  
+    // handle checkpoint
+    const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+    const host = headers().get("host") ?? "";
+  
+    let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index + 1]?.checkpoint_url;
+    
+    if (next_checkpoint_url == undefined) {
+      next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
+    }
+
+    return (
+      <KeySystemWrapper script_data={project_data} description={description}>
+        {key && !KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
+          <KeyInput key={key}  />
+        )}
+  
+        {key && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
+          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url}  />
+        )}
+      </KeySystemWrapper>
+    )
+  }
+
   return (
     <KeySystemWrapper script_data={project_data} description={description}>
       {key && (key_type == "temporary" || key_type == "permanent") && (
         <KeyInput key={key}  />
-      )}
-
-      {key && key_type == "checkpoint" && !KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
-        <KeyInput key={key}  />
-      )}
-
-      {key && key_type == "checkpoint" && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && (
-        <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url}  />
       )}
     </KeySystemWrapper>
   );
