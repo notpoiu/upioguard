@@ -174,6 +174,11 @@ export default async function KeyPage({
     
   
     // handle checkpoint
+    try{
+      await log(`did_finish_keysystem : ${KeyUtility.is_keysystem_finished(checkpoints_db_response.length)}`);
+    } catch (e) {
+      await log(`did_finish_keysystem : ${e}`);
+    }
     const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     await log(`did_finish_keysystem : ${did_finish_keysystem}`);
     const host = headers().get("host") ?? "";
