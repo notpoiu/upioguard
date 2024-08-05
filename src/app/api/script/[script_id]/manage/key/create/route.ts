@@ -1,11 +1,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { randomString, getRandomArbitrary } from "@/lib/utils";
+import { generate_key } from "@/lib/key_utils";
 import { NextRequest, NextResponse } from "next/server";
-
-export function generate_key() {
-  return "upioguard-" + randomString(getRandomArbitrary(10, 15));
-}
 
 export async function POST(req: NextRequest, params: { script_id: string }) {
   let { 

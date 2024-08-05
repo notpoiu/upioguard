@@ -4,7 +4,7 @@ import { db } from "./db";
 import { admins, users } from "./db/schema";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import { generate_key } from "./app/api/script/[script_id]/manage/key/create/route";
+import { generate_key } from "./lib/key_utils";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Discord],

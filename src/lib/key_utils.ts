@@ -1,5 +1,6 @@
 "use server";
 
+import { randomString, getRandomArbitrary } from "@/lib/utils";
 import { db } from "@/db";
 import { Key, project, Project, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -187,4 +188,8 @@ export async function create_key_helper(key: string, project_id: string) {
   await KeyUtility.init();
 
   return KeyUtility;
+}
+
+export function generate_key() {
+  return "upioguard-" + randomString(getRandomArbitrary(10, 15));
 }
