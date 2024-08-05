@@ -3,7 +3,7 @@ import { users } from "@/db/schema";
 import { generate_key } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest, params: { script_id: string }) {
+export async function POST(req: NextRequest, {params}: { params: {script_id: string} }) {
   let { 
     discord_id,
     username,
