@@ -36,6 +36,10 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     };
   }
 
+  if (process.env.NODE_ENV == "development") {
+    return true;
+  }
+
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify" + new URLSearchParams({
     secret: SECRET_KEY,
     response: token,
@@ -62,9 +66,9 @@ export async function set_cookie_turnstile(token: string, url: string, project_i
     sameSite: "strict",
     secure: process.env.NODE_ENV == "production",
   });
-  
-  const keyhelper = await create_key_helper(project_id);
-  await keyhelper.increment_checkpoint_index();
+
+  const KeyUtility = await create_key_helper(project_id);
+  await KeyUtility.increment_checkpoint_index();
 
   redirect(url);
 }

@@ -101,7 +101,7 @@ class KeyHelper {
   }
 
   public get_checkpoint_finished_at() {
-    return this.key_data.checkpoints_finished_at ?? new Date();
+    return new Date(this.key_data.checkpoints_finished_at?.getTime() ?? new Date().getTime());
   }
 
   public is_checkpoint_key_started() {
@@ -109,7 +109,7 @@ class KeyHelper {
   }
 
   public is_checkpoint_key_expired() {
-    return this.key_data.key_expires && this.get_checkpoint_finished_at() < this.get_checkpoint_expiration();
+    return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() > this.get_checkpoint_expiration();
   }
 
   // Assummes that the KeyHelper.finish_checkpoint() has been called
@@ -124,10 +124,8 @@ class KeyHelper {
   }
 
   public get_checkpoint_expiration(): Date {
-    return new Date(
-      this.get_checkpoint_finished_at().getTime() ?? Date.now() +
-      (parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 60 * 1000)
-    );
+    const additional_time = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 1000;
+    return new Date(this.get_checkpoint_finished_at().getTime() + additional_time);
   }
 
   public get_checkpoint_index() {
@@ -157,6 +155,9 @@ class KeyHelper {
     "use server";
     const date = new Date();
 
+    const session = await auth();
+    const userid = session?.user?.id ?? "0";
+
     this.key_data.checkpoint_started_at = date;
     this.key_data.checkpoint_index = "0";
     this.key_data.checkpoints_finsihed = false;
@@ -167,25 +168,38 @@ class KeyHelper {
       checkpoint_index: "0",
       checkpoints_finsihed: false,
       checkpoints_finished_at: null,
-    }).where(eq(users.discord_id, this.project_id));
+    }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 
   public async increment_checkpoint_index() {
     const date = new Date();
 
-    let data: any = {
-      checkpoint_index: this.key_data.checkpoint_index,
-    }
+    let new_checkpoint_index = parseInt(this.key_data.checkpoint_index) + 1;
+    
+    const session = await auth();
+    const userid = session?.user?.id ?? "0";
+
 
     if (this.key_data.checkpoint_index == "0") {
       this.key_data.checkpoint_started_at = date;
-      data.checkpoint_started_at = date;
+      await db.update(users).set({
+        checkpoint_index: new_checkpoint_index.toString(),
+        checkpoint_started_at: date,
+      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+      return;
     }
-    await db.update(users).set(data).where(eq(users.discord_id, this.project_id));
+    
+    await db.update(users).set({
+      checkpoint_index: new_checkpoint_index.toString(),
+    }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+    console.log("updated")
   }
 
   public async finish_checkpoint() {
     const date = new Date();
+
+    const session = await auth();
+    const userid = session?.user?.id ?? "0";
 
     this.key_data.checkpoints_finished_at = date;
     this.key_data.checkpoints_finsihed = true;
@@ -193,7 +207,7 @@ class KeyHelper {
     await db.update(users).set({
       checkpoints_finsihed: true,
       checkpoints_finished_at: date,
-    }).where(eq(users.discord_id, this.project_id));
+    }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 }
 

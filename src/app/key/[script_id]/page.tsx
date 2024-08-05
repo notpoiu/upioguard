@@ -20,6 +20,8 @@ import { Key } from "lucide-react";
 import { verify } from "crypto";
 import { verify_turnstile } from "./key_server";
 import { create_key_helper } from "@/lib/key_utils";
+import { generate_key } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 function KeySystemWrapper({
   script_data,
@@ -34,7 +36,7 @@ function KeySystemWrapper({
 }) {
   return (
     <main className="flex justify-center items-center h-screen w-screen">
-      <Card>
+      <Card className="max-w-[50vw] max-md:max-w-[80vw] max-sm:max-w-[90vw]">
         <CardHeader>
           <CardTitle>{title ?? "Key System - " + script_data.name}</CardTitle>
           <CardDescription>{description ?? script_data.description}</CardDescription>
@@ -48,9 +50,19 @@ function KeySystemWrapper({
 const messages = {
   "temporary": "Thank you for supporting this script, here is your temp key, this key will expire the {expiry}",
   "permanent": "Thank you for supporting this script, here is your permanent key",
-  "checkpoint-finished": "Thank you for supporting this script, here is your checkpoint key, this key will be valid for {time} hours",
+  "checkpoint-finished": "Thank you for supporting this script, here is your checkpoint key, this key will be valid until {time}",
   "checkpoint-not-finished": "By doing this checkpoint system you for supporting this script, thank you!",
 }
+
+function diff_minutes(dt2: Date, dt1: Date): number
+ {
+  // Calculate the difference in milliseconds between the two provided dates and convert it to seconds
+  var diff =(dt2.getTime() - dt1.getTime()) / 1000;
+  // Convert the difference from seconds to minutes
+  diff /= 60;
+  // Return the absolute value of the rounded difference in minutes
+  return Math.abs(Math.round(diff));
+ }
 
 export default async function KeyPage({
   params,
@@ -96,7 +108,16 @@ export default async function KeyPage({
 
   const user_data_resp = await db.select().from(users).where(eq(users.discord_id, session.user.id));
 
-  if (user_data_resp.length == 0) {
+  if (user_data_resp.length == 0 && project_data.project_type == "free-paywall") {
+    await db.insert(users).values({
+      project_id: params.script_id,
+      discord_id: session.user.id ?? "0",
+      username: session.user.name ?? "Anonymous",
+      note: null,
+      key_type: "checkpoint",
+      key: generate_key(),
+    });
+  } else if (user_data_resp.length == 0 && project_data.project_type != "free-paywall") {
     return notFound();
   }
 
@@ -118,14 +139,20 @@ export default async function KeyPage({
   // @ts-ignore
   let description = messages[description_key as "temporary" | "permanent" | "checkpoint" | "checkpoint-finished" | "checkpoint-not-finished"];
   description = description.replace("{expiry}", KeyUtility.get_general_expiration()?.toLocaleString() ?? "permanent");
-  description = description.replace("{time}", (((KeyUtility.get_general_expiration()?.getTime() ?? 0) - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString());
 
+  let time = `${Math.abs(KeyUtility.get_checkpoint_expiration().getTime() - new Date().getTime()) / 36e5} hours`;
+
+  if (Math.floor(Math.abs(KeyUtility.get_checkpoint_expiration().getTime() - new Date().getTime()) / 36e5) == 0) {
+    time = `${diff_minutes(KeyUtility.get_checkpoint_expiration(), new Date())} minutes`;
+  }
+
+  description = description.replace("{time}", time);
 
   if (key_type == "checkpoint") {
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
-  
+    
     // Handle checkpoint key started
-    if (KeyUtility.is_checkpoint_key_started()) {
+    if (KeyUtility.is_checkpoint_key_expired()) {
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
     }
@@ -133,15 +160,15 @@ export default async function KeyPage({
     // Intermadiate checkpoint reached
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
-    if (KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
+
+    if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
-  
-      if (is_valid) {
-        await KeyUtility.set_checkpoint_index(current_checkpoint_index + 1);
-        current_checkpoint_index++;
-      } else {
-        error_key_occured = true;
-      }
+      error_key_occured = !is_valid;
+    }
+
+    // finished checkpoint
+    if (!KeyUtility.is_checkpoint_key_expired() && finished_key_system && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
+      await KeyUtility.finish_checkpoint();
     }
     
   
@@ -168,7 +195,9 @@ export default async function KeyPage({
         )}
 
         {key && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem && !error_key_occured && (
-          <KeyInput key={key}  />
+          <KeyInput upioguard_key={key}>
+            <Input id="key" value={key} readOnly />
+          </KeyInput>
         )}
   
         {key && KeyUtility.is_checkpoint_key_expired() || !did_finish_keysystem && !error_key_occured && (
@@ -182,7 +211,9 @@ export default async function KeyPage({
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
         {key && (key_type == "temporary" || key_type == "permanent") && (
-          <KeyInput key={key}  />
+          <KeyInput upioguard_key={key}>
+            <Input id="key" value={key} readOnly />
+          </KeyInput>
         )}
       </KeySystemWrapper>
     );
