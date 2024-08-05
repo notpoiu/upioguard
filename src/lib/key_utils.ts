@@ -1,8 +1,10 @@
 "use server";
 
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { Key, project, Project, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { check } from "drizzle-orm/mysql-core";
 
 // I coudnt work with the spaghetti code that i made so uh
 class KeyHelper {
@@ -39,25 +41,25 @@ class KeyHelper {
   };
 
   public project_id: string = "";
-  public key: string = "";
+  public userid: string = "";
 
-  public constructor(key: string, project_id: string) {
+  public constructor(userid: string, project_id: string) {
     this.project_id = project_id;
-    this.key = key;
+    this.userid = userid;
   }
 
   public init() {
-    return this.internal_init(this.key, this.project_id);
+    return this.internal_init(this.userid, this.project_id);
   }
 
   // A wrapper for init, its just so it looks nicer
   public refresh() {
-    return this.internal_init(this.key, this.project_id);
+    return this.internal_init(this.userid, this.project_id);
   }
 
-  private async internal_init(key: string, project_id: string) {
+  private async internal_init(userid: string, project_id: string) {
     "use server";
-    const db_response = await db.select().from(users).where(sql`${users.key} = ${key} AND ${users.project_id} = ${project_id}`);
+    const db_response = await db.select().from(users).where(sql`${users.discord_id} = ${userid} AND ${users.project_id} = ${project_id}`);
     this.key_data = db_response[0];
 
     const project_response = await db.select().from(project).where(eq(project.project_id, project_id));
@@ -168,6 +170,20 @@ class KeyHelper {
     }).where(eq(users.discord_id, this.project_id));
   }
 
+  public async increment_checkpoint_index() {
+    const date = new Date();
+
+    let data: any = {
+      checkpoint_index: this.key_data.checkpoint_index,
+    }
+
+    if (this.key_data.checkpoint_index == "0") {
+      this.key_data.checkpoint_started_at = date;
+      data.checkpoint_started_at = date;
+    }
+    await db.update(users).set(data).where(eq(users.discord_id, this.project_id));
+  }
+
   public async finish_checkpoint() {
     const date = new Date();
 
@@ -182,8 +198,11 @@ class KeyHelper {
 }
 
 // very hacky way (wow thanks vercel!! :D)
-export async function create_key_helper(key: string, project_id: string) {
-  const KeyUtility = new KeyHelper(key, project_id);
+export async function create_key_helper(project_id: string) {
+  const session = await auth();
+  const userid = session?.user?.id ?? "0";
+  
+  const KeyUtility = new KeyHelper(userid,project_id);
   await KeyUtility.init();
 
   return KeyUtility;

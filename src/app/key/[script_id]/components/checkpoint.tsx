@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { set_cookie_turnstile } from "../key_server";
 import { useRouter } from "next/navigation";
 
-export function Checkpoint({ env, currentCheckpointIndex, checkpointurl }: { env: string, currentCheckpointIndex: number, checkpointurl: string }) {
+export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project_id }: { env: string, currentCheckpointIndex: number, checkpointurl: string, project_id: string }) {
   const [captchaToken, setCaptchaToken] = React.useState<string>();
 
   const router = useRouter();
@@ -30,7 +30,7 @@ export function Checkpoint({ env, currentCheckpointIndex, checkpointurl }: { env
       {captchaToken && (
         <BlurFade inView duration={0.2} className="flex justify-center items-center">
           <Button onClick={() => {
-            set_cookie_turnstile(captchaToken, checkpointurl).then(() => {
+            set_cookie_turnstile(captchaToken, checkpointurl, project_id).then(() => {
               console.log("Set cookie successfully");
               router.push(checkpointurl);
             });

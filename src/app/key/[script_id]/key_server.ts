@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
+import { create_key_helper } from "@/lib/key_utils";
 
 const SECRET_KEY = process.env.NODE_ENV == "production" ? process.env.TURNSTILE_SECRET_KEY ?? "1x00000000000000000000AA" : "1x00000000000000000000AA";
 
@@ -54,20 +55,16 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
   return data.success && date_challenge_minimum < new Date().getTime();
 }
 
-export async function set_cookie_turnstile(token: string, url: string) {
+export async function set_cookie_turnstile(token: string, url: string, project_id: string) {
   cookies().set("upioguard-turnstile", token, {
     path: "/",
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV == "production",
   });
-
-  const session = await auth();
-
-  await db.update(users).set({
-    checkpoint_started_at: new Date(),
-    checkpoint_index: "1",
-  }).where(eq(users.discord_id, session?.user?.id ?? "0"));
+  
+  const keyhelper = await create_key_helper(project_id);
+  await keyhelper.increment_checkpoint_index();
 
   redirect(url);
 }

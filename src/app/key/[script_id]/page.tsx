@@ -100,9 +100,7 @@ export default async function KeyPage({
     return notFound();
   }
 
-  const user_data = user_data_resp[0];
-
-  const KeyUtility = await create_key_helper(user_data.key, params.script_id);
+  const KeyUtility = await create_key_helper(params.script_id);
 
   const [key, key_type] = KeyUtility.get_key();
   console.log(key, key_type);
@@ -134,15 +132,16 @@ export default async function KeyPage({
   
     // Intermadiate checkpoint reached
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+    let error_key_occured = false;
     if (KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
   
       if (is_valid) {
         await KeyUtility.set_checkpoint_index(current_checkpoint_index + 1);
         current_checkpoint_index++;
+      } else {
+        error_key_occured = true;
       }
-    } else if (key_type == "checkpoint" && finished_key_system) {
-      await KeyUtility.finish_checkpoint();
     }
     
   
@@ -152,18 +151,31 @@ export default async function KeyPage({
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index + 1]?.checkpoint_url;
     
-    if (next_checkpoint_url == undefined) {
+    if (current_checkpoint_index == checkpoints_db_response.length) {
+      next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
+    } else if (current_checkpoint_index < checkpoints_db_response.length) {
+      await KeyUtility.finish_checkpoint();
+    } else if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
     }
 
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
-        {key && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem && (
+        {error_key_occured && (
+          <div className="flex flex-col justify-center items-center">
+            <h1 className="text-2xl font-bold">Error</h1>
+            <p className="text-lg">
+              Something went wrong, maybe you came back to this page too fast (minimum {project_data.minimum_checkpoint_switch_duration} seconds between checkpoints)
+            </p>
+          </div>
+        )}
+
+        {key && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem && !error_key_occured && (
           <KeyInput key={key}  />
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() || !did_finish_keysystem && (
-          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url}  />
+        {key && KeyUtility.is_checkpoint_key_expired() || !did_finish_keysystem && !error_key_occured && (
+          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
       </KeySystemWrapper>
     )
