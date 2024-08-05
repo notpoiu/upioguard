@@ -164,13 +164,8 @@ export default async function KeyPage({
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
 
-    await log(`finished_key_system : ${finished_key_system}`);
-
     if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
-      await log(`!KeyUtility.is_checkpoint_key_expired() && !finished_key_system`);
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
-
-      await log(`is_valid : ${is_valid}`);
       error_key_occured = !is_valid;
     }
 
@@ -181,27 +176,17 @@ export default async function KeyPage({
       await KeyUtility.finish_checkpoint();
     }
 
-    await log(`finished_key_system : ${finished_key_system}`);
-    
+  
   
     // handle checkpoint
-    try{
-      await log(`did_finish_keysystem : ${KeyUtility.is_keysystem_finished(checkpoints_db_response.length)}`);
-    } catch (e) {
-      await log(`did_finish_keysystem : ${e}`);
-    }
     const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
-    await log(`did_finish_keysystem : ${did_finish_keysystem}`);
     const host = headers().get("host") ?? "";
-    await log(`host : ${host}`);
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
     await log(`next_checkpoint_url : ${next_checkpoint_url}`);
     if (current_checkpoint_index < checkpoints_db_response.length) {
-      await log(`current_checkpoint_index < checkpoints_db_response.length`);
       await KeyUtility.finish_checkpoint();
     } else if (next_checkpoint_url == undefined) {
-      await log(`next_checkpoint_url == undefined`);
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
     }
 

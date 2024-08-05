@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { create_key_helper } from "@/lib/key_utils";
+import { log } from "@/lib/logging";
 
 const SECRET_KEY = process.env.NODE_ENV == "production" ? process.env.TURNSTILE_SECRET_KEY ?? "1x00000000000000000000AA" : "1x00000000000000000000AA";
 
@@ -22,23 +23,28 @@ Example turnstile response
 }
  */
 export async function verify_turnstile(minimum_checkpoint_switch_duration: number) {
-  const token = cookies().get("upioguard-turnstile")?.value ?? "Invalid token";
+  const token = cookies().get("upioguard-turnstile") ?? { value: "Invalid token" };
   const host = (headers().get("host") ?? "localhost:3000").replaceAll("http://", "").replaceAll("https://", "").trim();
-
-  if (token == "Invalid token") {
+  await log(`token: ${token.value}`);
+  await log(`host: ${host}`);
+  if (token.value == "Invalid token") {
     return false;
   }
+
+  await log(`env: ${process.env.NODE_ENV}`);
 
   if (process.env.NODE_ENV == "development") {
     return true;
   }
 
+  await log(`secret: ${SECRET_KEY}`);
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify" + new URLSearchParams({
     secret: SECRET_KEY,
-    response: token,
+    response: token.value,
   }).toString())
-
+  await log(`response: ${response}`);
   const JSON_DATA = await response.json();
+  await log(`JSON_DATA: ${JSON_DATA}`);
   const data =  {
     success: JSON_DATA.success ?? false,
     challenge_ts: JSON_DATA.challenge_ts ?? new Date().toISOString(),
@@ -47,7 +53,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
       "upioguard-invalid-response",
     ]
   };
-
+  await log(`data: ${data}`);
   const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
   return data.success && date_challenge_minimum < new Date().getTime();
 }
