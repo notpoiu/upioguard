@@ -19,6 +19,7 @@ export const ProjectDataContext = createContext<{data: Project, refresh: () => v
     discord_webhook: "",
     github_token: "",
     linkvertise_key_duration: "1",
+    minimum_checkpoint_switch_duration: "1",
   },
   refresh: () => {},
   refresh_key: 0,
@@ -41,6 +42,7 @@ export default function ProjectDataProvider({ project_id, children }: { project_
     discord_webhook: null,
     github_token: "",
     linkvertise_key_duration: "1",
+    minimum_checkpoint_switch_duration: "1",
   });
 
   const [refresh_key, setRefreshKey] = useState(0);
