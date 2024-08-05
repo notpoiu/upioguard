@@ -150,6 +150,7 @@ export default async function KeyPage({
   description = description.replace("{time}", time);
 
   if (key_type == "checkpoint") {
+    await log(`key_type : "checkpoint"`);
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     // Handle checkpoint key started
@@ -157,7 +158,8 @@ export default async function KeyPage({
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
     }
-  
+    
+    await log(`current_checkpoint_index : ${current_checkpoint_index}`);
     // Intermadiate checkpoint reached
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
@@ -167,10 +169,14 @@ export default async function KeyPage({
       error_key_occured = !is_valid;
     }
 
+    await log(`error_key_occured : ${error_key_occured}`);
+
     // finished checkpoint
     if (!KeyUtility.is_checkpoint_key_expired() && finished_key_system && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
       await KeyUtility.finish_checkpoint();
     }
+
+    await log(`finished_key_system : ${finished_key_system}`);
     
   
     // handle checkpoint
