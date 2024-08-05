@@ -22,6 +22,7 @@ import { verify_turnstile } from "./key_server";
 import { create_key_helper } from "@/lib/key_utils";
 import { generate_key } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { log } from "@/lib/logging";
 
 function KeySystemWrapper({
   script_data,
@@ -71,6 +72,8 @@ export default async function KeyPage({
 }) {
   const session = await auth();
 
+  await log("Key page loaded");
+
   const project_query_response = await db
     .select()
     .from(project)
@@ -104,6 +107,8 @@ export default async function KeyPage({
     );
   }
 
+  await log("Key page getting checkpoints");
+
   const checkpoints_db_response = await db.select().from(checkpoints).where(eq(checkpoints.project_id, params.script_id));
 
   const user_data_resp = await db.select().from(users).where(eq(users.discord_id, session.user.id));
@@ -120,7 +125,8 @@ export default async function KeyPage({
   } else if (user_data_resp.length == 0 && project_data.project_type != "free-paywall") {
     return notFound();
   }
-
+  
+  await log("Key page getting key");
   const KeyUtility = await create_key_helper(params.script_id);
 
   const [key, key_type] = KeyUtility.get_key();
@@ -136,6 +142,8 @@ export default async function KeyPage({
     }
   }
 
+  await log("Key page getting description");
+
   // @ts-ignore
   let description = messages[description_key as "temporary" | "permanent" | "checkpoint" | "checkpoint-finished" | "checkpoint-not-finished"];
   description = description.replace("{expiry}", KeyUtility.get_general_expiration()?.toLocaleString() ?? "permanent");
@@ -148,6 +156,8 @@ export default async function KeyPage({
 
   description = description.replace("{time}", time);
 
+  await log("Key page getting checkpoint");
+
   if (key_type == "checkpoint") {
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
@@ -156,10 +166,14 @@ export default async function KeyPage({
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
     }
+
+    await log("Key page checkpoint started");
   
     // Intermadiate checkpoint reached
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
+
+    await log("Key page checkpoint finished");
 
     if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
@@ -170,6 +184,8 @@ export default async function KeyPage({
     if (!KeyUtility.is_checkpoint_key_expired() && finished_key_system && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
       await KeyUtility.finish_checkpoint();
     }
+
+    await log("Key page checkpoint finished");
     
   
     // handle checkpoint
