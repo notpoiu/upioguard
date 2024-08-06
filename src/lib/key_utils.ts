@@ -263,8 +263,10 @@ class KeyHelper {
     if (this.key_data.checkpoint_index == "0") {
       this.key_data.checkpoint_started_at = date;
       await db.update(users).set({
-        checkpoint_index: new_checkpoint_index.toString(),
+        checkpoint_index: "1",
         checkpoint_started_at: date,
+        checkpoints_finsihed: false,
+        checkpoints_finished_at: null,
       }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
       return;
     }
