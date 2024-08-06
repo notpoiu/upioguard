@@ -168,14 +168,13 @@ export default async function KeyPage({
 
 
     // finished checkpoint
-    if (!KeyUtility.is_checkpoint_key_expired() && finished_key_system && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
+    const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+    if (is_keysystem_started && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem) {
       await KeyUtility.finish_checkpoint();
     }
-
-  
   
     // handle checkpoint
-    const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
+    
     const host = headers().get("host") ?? "";
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
