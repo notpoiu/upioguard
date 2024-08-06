@@ -11,7 +11,9 @@ import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
 import { log } from "@/lib/logging";
 // @ts-ignore
 import { minify } from 'luamin';
-import { except } from "drizzle-orm/mysql-core";
+
+import path from "path";
+import fs from "fs";
 
 /*
 
@@ -179,6 +181,9 @@ const headers_in_use = [
 ]
 
 async function fetch_script(octokit: Octokit, project_data: any, user_data: any, fingerprint: string) {
+  const file_path = path.join(process.cwd(), 'scripts', 'script_response.lua');
+  let response_script = fs.readFileSync(file_path, "utf8");
+
   const is_discord_enabled = project_data.discord_link != null && project_data.discord_link.trim() != "";
   const discord_link = project_data.discord_link ?? "";
 
@@ -196,60 +201,25 @@ async function fetch_script(octokit: Octokit, project_data: any, user_data: any,
     // @ts-ignore
     const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
 
+    let returned_script_data_content = content;
     try {
-      const minified_content = minify(content, {
+      returned_script_data_content = minify(content, {
         RenameGlobals: true,
       });
-  
-  
-      return new Response(`local function Wrapper(Function: (...any) -> (...any), NewEnv: {[any]: any})
-  local normalEnv = getfenv(Function)
-
-  setfenv(Function, setmetatable(NewEnv, {__index = normalEnv}))
-
-  return Function
-end
-
-local WrappedEnv = Wrapper(function()
-  ${minified_content}
-end, {
-  upioguard = {
-    username = "${user_data.username.replaceAll('"', '\\"')}",
-    userid = "${user_data.discord_id}",
-    note = "${user_data.note?.replaceAll('"', '\\"')}",
-    hwid = "${fingerprint}",
-    script_name = "${project_data.name}",
-    expiry = ${user_data.expiry ?? "nil"},
-    is_premium = ${user_data.is_premium},
-  }
-})
-
-WrappedEnv()`);
     } catch (error) {
-      await log(`[upioguard] Failed to minify: ${error}`);
-      return new Response(`local function Wrapper(Function: (...any) -> (...any), NewEnv: {[any]: any})
-  local normalEnv = getfenv(Function)
-
-  setfenv(Function, setmetatable(NewEnv, {__index = normalEnv}))
-
-  return Function
-end
-
-local WrappedEnv = Wrapper(function()
-${content}
-end, {
-  upioguard = {
-    username = "${user_data.username.replaceAll('"', '\\"')}",
-    userid = "${user_data.discord_id}",
-    note = "${user_data.note?.replaceAll('"', '\\"')}",
-    hwid = "${fingerprint}",
-    script_name = "${project_data.name}",
-    expiry = ${user_data.expiry ?? "nil"},
-    is_premium = ${user_data.is_premium},
-  }
-})
-WrappedEnv()`);
+      console.log("Failed to minify: ", error);
     }
+
+    response_script = response_script.replaceAll("${returned_content}", returned_script_data_content);
+    response_script = response_script.replaceAll("${user_data.username}", user_data.username.replaceAll('"', '\\"'));
+    response_script = response_script.replaceAll("${user_data.discord_id}", user_data.discord_id);
+    response_script = response_script.replaceAll("${user_data.note}", user_data.note?.replaceAll('"', '\\"'));
+    response_script = response_script.replaceAll("${fingerprint}", fingerprint);
+    response_script = response_script.replaceAll("${project_data.name}", project_data.name);
+    response_script = response_script.replaceAll("${user_data.expiry}", user_data.expiry ?? "nil");
+    response_script = response_script.replaceAll("${user_data.is_premium}", user_data.is_premium);
+
+    return new Response(response_script);
   } catch (error) {
     return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
   }
