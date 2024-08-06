@@ -64,12 +64,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
 }
 
 export async function delete_cookie_turnstile() {
-  cookies().set("upioguard-turnstile", "", {
-    path: "/",
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV == "production",
-  });
+  cookies().delete("upioguard-turnstile");
 }
 
 export async function set_cookie_turnstile(token: string, url: string, project_id: string) {

@@ -196,7 +196,7 @@ export default async function KeyPage({
             </p>
 
             <Link href={`/key/${params.script_id}`}>
-              <a className="btn btn-sm btn-secondary">Retry</a>
+              <Button className="mt-2">Retry</Button>
             </Link>
           </div>
         )}
