@@ -9,6 +9,9 @@ import { Octokit } from "@octokit/rest";
 import { is, sql } from "drizzle-orm";
 import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
 import { log } from "@/lib/logging";
+// @ts-ignore
+import { minify } from 'luamin';
+import { except } from "drizzle-orm/mysql-core";
 
 /*
 
@@ -193,18 +196,60 @@ async function fetch_script(octokit: Octokit, project_data: any, user_data: any,
     // @ts-ignore
     const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
 
-    return new Response(`assert(getgenv, "getgenv not found, ${project_data.name} could not be run.")
-getgenv().upioguard = {
-username = "${user_data.username.replaceAll('"', '\\"')}",
-userid = "${user_data.discord_id}",
-note = "${user_data.note?.replaceAll('"', '\\"')}",
-hwid = "${fingerprint}",
-script_name = "${project_data.name}",
-expiry = ${user_data.expiry ?? "nil"},
-is_premium = ${user_data.is_premium},
-}
+    try {
+      const minified_content = minify(content, {
+        RenameGlobals: true,
+      });
+  
+  
+      return new Response(`local function Wrapper(Function: (...any) -> (...any), NewEnv: {[any]: any})
+  local normalEnv = getfenv(Function)
 
-${content}`);
+  setfenv(Function, setmetatable(NewEnv, {__index = normalEnv}))
+
+  return Function
+end
+
+local WrappedEnv = Wrapper(function()
+  ${minified_content}
+end, {
+  upioguard = {
+    username = "${user_data.username.replaceAll('"', '\\"')}",
+    userid = "${user_data.discord_id}",
+    note = "${user_data.note?.replaceAll('"', '\\"')}",
+    hwid = "${fingerprint}",
+    script_name = "${project_data.name}",
+    expiry = ${user_data.expiry ?? "nil"},
+    is_premium = ${user_data.is_premium},
+  }
+})
+
+WrappedEnv()`);
+    } catch (error) {
+      await log(`[upioguard] Failed to minify: ${error}`);
+      return new Response(`local function Wrapper(Function: (...any) -> (...any), NewEnv: {[any]: any})
+  local normalEnv = getfenv(Function)
+
+  setfenv(Function, setmetatable(NewEnv, {__index = normalEnv}))
+
+  return Function
+end
+
+local WrappedEnv = Wrapper(function()
+${content}
+end, {
+  upioguard = {
+    username = "${user_data.username.replaceAll('"', '\\"')}",
+    userid = "${user_data.discord_id}",
+    note = "${user_data.note?.replaceAll('"', '\\"')}",
+    hwid = "${fingerprint}",
+    script_name = "${project_data.name}",
+    expiry = ${user_data.expiry ?? "nil"},
+    is_premium = ${user_data.is_premium},
+  }
+})
+WrappedEnv()`);
+    }
   } catch (error) {
     return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
   }
