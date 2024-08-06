@@ -22,6 +22,7 @@ class KeyHelper {
     checkpoint_started_at: null,
     project_id: "",
     key: "",
+    checkpoint_started: false,
   };
   public project_data: Project = {
     project_id: "",
@@ -162,8 +163,12 @@ class KeyHelper {
     return new Date(this.key_data.checkpoints_finished_at?.getTime() ?? new Date().getTime());
   }
 
-  public is_checkpoint_key_started() {
-    return this.key_data.checkpoint_started_at && this.key_data.checkpoint_started_at > new Date() && this.key_data.checkpoint_index != "0";
+  public get_checkpoint_key_started() {
+    return this.key_data.checkpoint_started != null;
+  }
+
+  public get_checkpoint_key_finished() {
+    return this.key_data.checkpoints_finished_at != null;
   }
 
   public is_checkpoint_key_expired() {
@@ -175,29 +180,6 @@ class KeyHelper {
   }
 
   // Assummes that the KeyHelper.finish_checkpoint() has been called
-  public is_keysystem_finished(total_checkpoints: number) {
-    if (this.get_key_type() != "checkpoint") {
-      return true;
-    }
-
-    const checkpoint_valid = this.get_checkpoint_index() == total_checkpoints && total_checkpoints != 0;
-
-    return checkpoint_valid && !this.is_checkpoint_key_expired();
-  }
-
-  public is_keysystem_started() {
-    const current_time = new Date();
-    const checkpoint_started_at = this.get_checkpoint_started_at();
-    const is_checkpoint_expired = this.is_checkpoint_key_expired();
-
-    const key_duration = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 1000;
-
-    if (is_checkpoint_expired || current_time < new Date(checkpoint_started_at.getTime() + key_duration)) {
-      return false;
-    }
-
-    return true;
-  }
 
   public get_checkpoint_expiration(): Date {
     const additional_time = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 60 * 1000;
@@ -238,12 +220,14 @@ class KeyHelper {
     this.key_data.checkpoint_index = "0";
     this.key_data.checkpoints_finsihed = false;
     this.key_data.checkpoints_finished_at = null;
+    this.key_data.checkpoint_started = true;
 
     await db.update(users).set({
       checkpoint_started_at: date,
       checkpoint_index: "0",
       checkpoints_finsihed: false,
       checkpoints_finished_at: null,
+      checkpoint_started: true,
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 
@@ -285,6 +269,7 @@ class KeyHelper {
     await db.update(users).set({
       checkpoints_finsihed: true,
       checkpoints_finished_at: date,
+      checkpoint_started: false,
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 }

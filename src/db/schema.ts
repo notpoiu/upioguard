@@ -116,6 +116,7 @@ export const users = pgTable("users", {
   checkpoints_finsihed: boolean("key_finsihed").notNull().default(false),
   checkpoints_finished_at: timestamp("checkpoints_finished_at"),
   checkpoint_started_at: timestamp("checkpoint_started_at"),
+  checkpoint_started: boolean("checkpoint_started").notNull().default(false),
 });
 
 export interface Key {
@@ -132,6 +133,7 @@ export interface Key {
   checkpoints_finished_at: Date | null;
   checkpoint_index: string;
   checkpoint_started_at: Date | null;
+  checkpoint_started: boolean;
 }
 
 export const project_executions = pgTable("project_executions", {

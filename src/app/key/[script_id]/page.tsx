@@ -151,27 +151,23 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     
-    if (KeyUtility.is_checkpoint_key_expired() && !KeyUtility.is_keysystem_started()) {
+    if (KeyUtility.is_checkpoint_key_expired() && !KeyUtility.get_checkpoint_key_started()) {
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
     }
     
     // Intermadiate checkpoint reached
-    const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
 
     const verify_turnstile_cookie = cookies().get("upioguard-turnstile");
-    const is_keysystem_started = KeyUtility.is_keysystem_started();
-    const index = KeyUtility.get_checkpoint_index();
-    if (KeyUtility.is_checkpoint_key_expired() && !finished_key_system && verify_turnstile_cookie && is_keysystem_started && index != 0) {
+    if (KeyUtility.is_checkpoint_key_expired() && verify_turnstile_cookie && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
       error_key_occured = !is_valid;
     }
 
 
     // finished checkpoint
-    const did_finish_keysystem = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
-    if (is_keysystem_started && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem) {
+    if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
       await KeyUtility.finish_checkpoint();
     }
   
@@ -202,13 +198,13 @@ export default async function KeyPage({
           </div>
         )}
 
-        {key && !KeyUtility.is_checkpoint_key_expired() && did_finish_keysystem && !error_key_occured && (
+        {key && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_key_started() && !error_key_occured && (
           <KeyInput upioguard_key={key}>
             <Input id="key" value={key} readOnly />
           </KeyInput>
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && !error_key_occured && (
+        {key && KeyUtility.is_checkpoint_key_expired() && !KeyUtility.get_checkpoint_key_started() && !error_key_occured && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
         <RemoveTurnstileCookie />
