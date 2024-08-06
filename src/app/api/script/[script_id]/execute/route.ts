@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
 import { is, sql } from "drizzle-orm";
-import { create_key_helper } from "@/lib/key_utils";
+import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
 import { log } from "@/lib/logging";
 
 /*
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
   }
 
   // Get Project Data
-  const KeyHelper = await create_key_helper(params.script_id);
+  const KeyHelper = await create_key_helper_key(params.script_id, key ?? "");
 
   await log(`[upioguard] ${KeyHelper.project_data.name} requested by ${KeyHelper.key_data.username}`);
   await log(`[upioguard] project_valid: ${KeyHelper.is_project_valid()} key_valid: ${KeyHelper.is_key_valid()}`);
