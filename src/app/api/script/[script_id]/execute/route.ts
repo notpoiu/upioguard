@@ -254,8 +254,6 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
   // Get Project Data
   const KeyHelper = await create_key_helper_key(params.script_id, key ?? "");
 
-  await log(`[upioguard] ${KeyHelper.project_data.name} requested by ${KeyHelper.key_data.username}`);
-  await log(`[upioguard] project_valid: ${KeyHelper.is_project_valid()} key_valid: ${KeyHelper.is_key_valid()}`);
   if (!KeyHelper.is_project_valid()) {
     return new Response(kick_script("upioguard", "Invalid script executed", false, ""));
   }

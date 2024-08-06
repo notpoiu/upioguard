@@ -150,7 +150,7 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     // Handle checkpoint key started
-    if (KeyUtility.is_checkpoint_key_expired()) {
+    if (KeyUtility.is_checkpoint_key_expired() && !KeyUtility.is_keysystem_started()) {
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
     }

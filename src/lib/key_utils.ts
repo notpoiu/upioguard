@@ -195,8 +195,12 @@ class KeyHelper {
     if (is_checkpoint_expired) {
       return false;
     }
-    
-    return checkpoint_started_at < current_time && current_time < this.get_checkpoint_expiration();
+
+    if (current_time < new Date(checkpoint_started_at.getTime() + key_duration)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public get_checkpoint_expiration(): Date {
