@@ -418,6 +418,7 @@ export default function Settings({params}: {params: {project_id: string}}) {
             <CardFooter className="flex flex-col">
               <Input placeholder="owner/repo" value={`https://github.com/${github_repo.owner}/${github_repo.name}/blob/main/${github_repo.path}`} onChange={(e) => {
                 const [owner, repo, path] = fetch_owner_repo_path(e.target.value);
+                toast.info(`Repo: ${owner}/${repo}, Path: ${path}`);
                 setGithubRepo({ name: repo ?? "", owner: owner ?? "", path: path ?? "" });
               }} />
               <div className="w-full flex justify-between mt-2">
