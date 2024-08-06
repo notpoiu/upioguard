@@ -7,6 +7,7 @@ import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
 import { is, sql } from "drizzle-orm";
+import { create_key_helper } from "@/lib/key_utils";
 
 /*
 
@@ -198,7 +199,7 @@ userid = "${user_data.discord_id}",
 note = "${user_data.note?.replaceAll('"', '\\"')}",
 hwid = "${fingerprint}",
 script_name = "${project_data.name}",
-${user_data.key_expires ? `  expiry = os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000},` : ""}
+expiry = ${user_data.expiry ?? "nil"},
 is_premium = true,
 }
 
@@ -235,13 +236,13 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
   }
 
   // Get Project Data
-  const project_resp = await db.select().from(project).where(eq(project.project_id, params.script_id));
+  const KeyHelper = await create_key_helper(params.script_id);
 
-  if (project_resp.length == 0) {
-    return new Response(kick_script("upioguard", "Invalid script provided", false, ""));
+  if (!KeyHelper.is_project_valid()) {
+    return new Response(kick_script("upioguard", "Invalid script executed", false, ""));
   }
 
-  const project_data = project_resp[0];
+  const project_data = KeyHelper.project_data;
 
   const octokit = new Octokit({
     auth: project_data.github_token,
@@ -314,7 +315,6 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     }
   }
 
-
   if (project_data.project_type == "paid") {
     const error_script = kick_script("upioguard", "Invalid key provided", is_discord_enabled, discord_link);
 
@@ -322,30 +322,24 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       return new Response(error_script);
     }
 
-    const user_resp = await db.select().from(users).where(eq(users.key, key));
+    const [validated_key, key_type] = KeyHelper.get_key();
 
-    if (user_resp.length == 0) {
+    if (!KeyHelper.is_key_valid()) {
       return new Response(error_script);
     }
 
-    const user_data = user_resp[0];
-
-    if (user_data.project_id != project_data.project_id) {
-      return new Response(error_script);
-    }
-
-    if (user_data.key_expires && user_data.key_type != "permanent") {
-      if (user_data.key_expires < new Date()) {
+    if (KeyHelper.get_general_expiration() && key_type != "permanent") {
+      if (KeyHelper.is_temp_key_expired()) {
         return new Response(kick_script("upioguard", "Key has expired", is_discord_enabled, discord_link));
       }
     }
 
+    const user_data = KeyHelper.key_data;
+
     if (!user_data.hwid || !user_data.executor) {
-      await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
-    } else {
-      if (user_data.hwid != fingerprint) {
-        return new Response(error_script);
-      }
+      await db.update(users).set({ hwid: fingerprint, executor: executor }).where(sql`${users.key} = ${validated_key} AND ${users.project_id} = ${project_data.project_id}`);
+    } else if (user_data.hwid != fingerprint) {
+      return new Response(error_script);
     }
 
     // Analytics
@@ -354,8 +348,8 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       userid: user_data.discord_id,
       hwid: fingerprint,
       script_name: project_data.name,
-      is_premium: (user_data.key_expires && user_data.key_type != "permanent") ? false : true,
-      expiry: user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil",
+      is_premium: true,
+      expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
       rbxlusername: username,
       rbxluserid: userid,
       rbxlplaceid: placeid,
@@ -383,35 +377,30 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     }
 
     if (key && key.trim() != "undefined") {
-      const user_resp = await db.select().from(users).where(eq(users.key, key));
-
-      if (user_resp.length == 0) {
+      if (!KeyHelper.is_key_valid()) {
         return new Response(error_script);
       }
 
-      const user_data = user_resp[0];
+      const user_data = KeyHelper.key_data;
+      const [validated_key, key_type] = KeyHelper.get_key();
       
       data.username = user_data.username;
       data.userid = user_data.discord_id ?? "";
       data.note = user_data.note ?? "";
       data.is_premium = true;
-      data.expiry = user_data.key_expires ? `os.time() + ${(user_data.key_expires.getTime() - new Date().getTime()) / 1000}` : "nil";
+      data.expiry = KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`;
 
-      if (user_resp[0].project_id != project_data.project_id) {
+      if (user_data.project_id != project_data.project_id) {
         data.is_premium = false;
       }
 
-      if (user_data.key_expires && user_data.key_type == "temporary") {
-        if (user_data.key_expires < new Date()) {
-          data.is_premium = false;
-        }
+      if (key_type == "temporary" && KeyHelper.is_temp_key_expired()) {
+        data.is_premium = false;
       }
 
-      const key_duration = parseInt(project_data.linkvertise_key_duration) ?? 1;
-      const expires = user_data.checkpoints_finished_at ?? new Date(0); // if the key is a checkpoint expiry is the time when the checkpoints got finished
-      const is_checkpoint_key_expired = user_data.checkpoints_finsihed && expires < new Date((user_data.checkpoints_finished_at ?? new Date(0)).getTime() + expires.getTime() + (key_duration * 60 * 60 * 1000));
-      
-      data.is_premium = !is_checkpoint_key_expired;
+      if (key_type == "checkpoint" && KeyHelper.is_checkpoint_key_expired()) {
+        data.is_premium = false;
+      }
 
       if (!user_data.hwid || !user_data.executor) {
         await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
@@ -442,53 +431,10 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         ismobile: is_mobile == "true" ? true : false,
         key: key,
       });
-    } else {
-      await collect_analytics(project_data.project_id, null, project_data.discord_webhook, {
-        username: "",
-        userid: "",
-        hwid: fingerprint,
-        script_name: project_data.name,
-        is_premium: false,
-        expiry: "nil",
-        rbxlusername: username,
-        rbxluserid: userid,
-        rbxlplaceid: placeid,
-        rbxljobid: jobid,
-        rbxlgamename: gamename,
-        executor: executor,
-        is_mobile: is_mobile == "true" ? true : false,
-        key: key,
-      });
+
+      return await fetch_script(octokit, project_data, data, fingerprint);
     }
     
-    try {
-      const response = await octokit.repos.getContent({
-        owner: project_data.github_owner,
-        repo: project_data.github_repo,
-        path: project_data.github_path,
-      });
-
-      if (response.status !== 200) {
-          return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
-      }
-  
-      // @ts-ignore
-      const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
-
-      return new Response(`assert(getgenv, "getgenv not found, ${project_data.name} could not be run.")
-getgenv().upioguard = {
-  username = "${data.username.replaceAll('"', '\\"')}",
-  userid = "${data.userid}",
-  note = "${data.note.replaceAll('"', '\\"')}",
-  hwid = "${fingerprint}",
-  script_name = "${project_data.name}",
-  is_premium = ${data.is_premium},
-  expiry = ${data.expiry},
-}
-
-${content}`);
-    } catch (error) {
-      return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
-    }
+    return await fetch_script(octokit, project_data, data, fingerprint);
   }
 }

@@ -42,28 +42,86 @@ class KeyHelper {
 
   public project_id: string = "";
   public userid: string = "";
+  public key: string = "";
+  public errored_user: boolean = false;
+  public errored_project: boolean = false;
 
-  public constructor(userid: string, project_id: string) {
+  public constructor(project_id: string, userid?: string, key?: string) {
     this.project_id = project_id;
-    this.userid = userid;
+    this.userid = userid ?? "";
+    this.key = key ?? "";
   }
 
   public init() {
-    return this.internal_init(this.userid, this.project_id);
+    return this.internal_init(this.project_id, this.userid, this.key);
   }
 
   // A wrapper for init, its just so it looks nicer
   public refresh() {
-    return this.internal_init(this.userid, this.project_id);
+    return this.internal_init(this.project_id, this.userid, this.key);
   }
 
-  private async internal_init(userid: string, project_id: string) {
+  private async internal_init(project_id: string, userid?: string,key?: string) {
     "use server";
-    const db_response = await db.select().from(users).where(sql`${users.discord_id} = ${userid} AND ${users.project_id} = ${project_id}`);
-    this.key_data = db_response[0];
+    try {
+      if (userid != "") {
+        const project_response = await db.select().from(project).where(eq(project.project_id, project_id));
+  
+        if (project_response.length == 0) {
+          this.errored_project = true;
+          return;
+        }
+  
+        this.project_data = project_response[0];
 
-    const project_response = await db.select().from(project).where(eq(project.project_id, project_id));
-    this.project_data = project_response[0];
+        const db_response = await db.select().from(users).where(sql`${users.discord_id} = ${userid} AND ${users.project_id} = ${project_id}`);
+        
+        if (db_response.length == 0) {
+          this.errored_user = true;
+          return;
+        }
+        
+        this.key_data = db_response[0];
+      } else if (key != "") {
+        const project_response = await db.select().from(project).where(eq(project.project_id, project_id));
+  
+        if (project_response.length == 0) {
+          this.errored_project = true;
+          return;
+        }
+  
+        this.project_data = project_response[0];
+        
+        const db_response = await db.select().from(users).where(sql`${users.key} = ${key} AND ${users.project_id} = ${project_id}`);
+        
+        if (db_response.length == 0) {
+          this.errored_user = true;
+          return;
+        }
+        
+        this.key_data = db_response[0];
+      } else {
+        this.errored_project = true;
+        this.errored_user = true;
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to init key helper", error);
+      this.errored_user = true;
+      this.errored_project = true;
+    }
+  }
+
+  public is_key_valid() {
+    return !this.errored_user && !this.errored_project;
+  }
+
+  public is_user_valid() {
+    return !this.errored_user;
+  }
+
+  public is_project_valid() {
+    return !this.errored_project;
   }
 
   public get_key() {
@@ -234,7 +292,17 @@ export async function create_key_helper(project_id: string) {
   const session = await auth();
   const userid = session?.user?.id ?? "0";
   
-  const KeyUtility = new KeyHelper(userid,project_id);
+  const KeyUtility = new KeyHelper(project_id, userid);
+  await KeyUtility.init();
+
+  return KeyUtility;
+}
+
+export async function create_key_helper_key(project_id: string, key: string) {
+  const session = await auth();
+  const userid = session?.user?.id ?? "0";
+  
+  const KeyUtility = new KeyHelper(project_id, undefined, key);
   await KeyUtility.init();
 
   return KeyUtility;
