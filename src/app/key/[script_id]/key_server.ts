@@ -34,6 +34,7 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     return true;
   }
 
+  cookies().delete("upioguard-turnstile");
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
     body: JSON.stringify({
@@ -62,8 +63,6 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     await log(`new Date().getTime() : ${new Date().getTime()}`);
     await log(`data.success && date_challenge_minimum < new Date().getTime() : ${data.success && date_challenge_minimum < new Date().getTime()}`);
     await log(`data.success : ${data.success}`);
-
-    cookies().delete("upioguard-turnstile");
     return data.success && date_challenge_minimum < new Date().getTime();
   } catch (e) {
     await log(`error: ${e}\nbody: ${response.body}\nSTATUS: ${response.status}`);
