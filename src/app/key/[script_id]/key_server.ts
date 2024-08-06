@@ -34,15 +34,20 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     return true;
   }
 
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify?" + new URLSearchParams({
-    secret: SECRET_KEY,
-    response: token.value,
-  }).toString(), {
+  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
+    body: JSON.stringify({
+      secret: SECRET_KEY,
+      response: token.value,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
   
   try {
     const JSON_DATA = await response.json();
+    console.log(JSON_DATA);
     const data =  {
       success: JSON_DATA.success ?? false,
       challenge_ts: JSON_DATA.challenge_ts ?? new Date().toISOString(),
