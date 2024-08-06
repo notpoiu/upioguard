@@ -149,7 +149,7 @@ export default async function KeyPage({
   if (key_type == "checkpoint") {
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
-    // Handle checkpoint key started
+    
     if (KeyUtility.is_checkpoint_key_expired() && !KeyUtility.is_keysystem_started()) {
       await KeyUtility.start_checkpoint();
       current_checkpoint_index = 0;
@@ -202,7 +202,7 @@ export default async function KeyPage({
           </KeyInput>
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() || !did_finish_keysystem && !error_key_occured && (
+        {key && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && !error_key_occured && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
       </KeySystemWrapper>
