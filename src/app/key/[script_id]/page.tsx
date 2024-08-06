@@ -141,7 +141,7 @@ export default async function KeyPage({
   let description = messages[description_key as "temporary" | "permanent" | "checkpoint" | "checkpoint-finished" | "checkpoint-not-finished"];
   description = description.replace("{expiry}", KeyUtility.get_general_expiration()?.toLocaleString() ?? "permanent");
 
-  let time = `${Math.abs(KeyUtility.get_checkpoint_expiration().getTime() - new Date().getTime()) / 36e5} hours`;
+  let time = `${Math.floor(Math.abs(KeyUtility.get_checkpoint_expiration().getTime() - new Date().getTime()) / 36e5)} hours`;
 
   if (Math.floor(Math.abs(KeyUtility.get_checkpoint_expiration().getTime() - new Date().getTime()) / 36e5) == 0) {
     time = `${diff_minutes(KeyUtility.get_checkpoint_expiration(), new Date())} minutes`;
