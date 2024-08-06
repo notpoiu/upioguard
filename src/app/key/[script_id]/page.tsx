@@ -122,7 +122,6 @@ export default async function KeyPage({
   const KeyUtility = await create_key_helper(params.script_id);
 
   const [key, key_type] = KeyUtility.get_key();
-  console.log(key, key_type);
 
   let description_key: string = KeyUtility.get_key_type() ?? "checkpoint-not-finished";
   
