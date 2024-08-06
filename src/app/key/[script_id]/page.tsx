@@ -164,7 +164,8 @@ export default async function KeyPage({
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
 
-    if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system) {
+    const verify_turnstile_cookie = cookies().get("upioguard-turnstile");
+    if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system && verify_turnstile_cookie) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
       error_key_occured = !is_valid;
     }
@@ -189,8 +190,6 @@ export default async function KeyPage({
     } else if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
     }
-
-    await log(`next_checkpoint_url : ${next_checkpoint_url}`);
 
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
