@@ -75,6 +75,17 @@ export default function Settings({params}: {params: {project_id: string}}) {
     setProjectType(data.project_type ?? "paid");
     setDiscordLink(data.discord_link ?? null);
     setDiscordWebhook(data.discord_webhook ?? null);
+    
+    setGithubRepo({
+      name: data.github_repo ?? "",
+      owner: data.github_owner ?? "",
+      path: data.github_path ?? "",
+    });
+
+    setGithubToken(data.github_token ?? "");
+
+    setMinimumCheckpointSwitchDuration(parseInt(data.minimum_checkpoint_switch_duration) ?? 15);
+    setCheckpointKeyDuration(parseInt(data.linkvertise_key_duration) ?? 1);
   }, [data]);
 
   useEffect(() => {
