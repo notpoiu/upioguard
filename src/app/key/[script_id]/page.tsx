@@ -19,6 +19,8 @@ import { verify_turnstile } from "./key_server";
 import { create_key_helper } from "@/lib/key_utils";
 import { generate_key } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import RemoveTurnstileCookie from "./components/remove_cookie";
+import Link from "next/link";
 
 
 function KeySystemWrapper({
@@ -192,6 +194,10 @@ export default async function KeyPage({
             <p className="text-lg">
               Something went wrong, maybe you came back to this page too fast (minimum {project_data.minimum_checkpoint_switch_duration} seconds between checkpoints)
             </p>
+
+            <Link href={`/key/${params.script_id}`}>
+              <a className="btn btn-sm btn-secondary">Retry</a>
+            </Link>
           </div>
         )}
 
@@ -204,6 +210,7 @@ export default async function KeyPage({
         {key && KeyUtility.is_checkpoint_key_expired() && !did_finish_keysystem && !error_key_occured && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
+        <RemoveTurnstileCookie />
       </KeySystemWrapper>
     )
   }

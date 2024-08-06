@@ -34,7 +34,6 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     return true;
   }
 
-  cookies().set("upioguard-turnstile","");
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
     body: JSON.stringify({
@@ -62,6 +61,15 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
   } catch (e) {
     return false;
   }
+}
+
+export async function delete_cookie_turnstile() {
+  cookies().set("upioguard-turnstile", "", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV == "production",
+  });
 }
 
 export async function set_cookie_turnstile(token: string, url: string, project_id: string) {
