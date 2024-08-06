@@ -201,7 +201,7 @@ note = "${user_data.note?.replaceAll('"', '\\"')}",
 hwid = "${fingerprint}",
 script_name = "${project_data.name}",
 expiry = ${user_data.expiry ?? "nil"},
-is_premium = true,
+is_premium = ${user_data.is_premium},
 }
 
 ${content}`);
@@ -363,7 +363,13 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       is_mobile: is_mobile == "true" ? true : false,
     });
 
-    return await fetch_script(octokit, project_data, user_data, fingerprint);
+    return await fetch_script(octokit, project_data, {
+      username: user_data.username,
+      discord_id: user_data.discord_id ?? "",
+      note: user_data.note ?? "",
+      is_premium: true,
+      expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
+    }, fingerprint);
   }
 
   // handle free projects
@@ -435,9 +441,21 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         key: key,
       });
 
-      return await fetch_script(octokit, project_data, data, fingerprint);
+      return await fetch_script(octokit, project_data, {
+        username: user_data.username,
+        discord_id: user_data.discord_id ?? "",
+        note: user_data.note ?? "",
+        is_premium: true,
+        expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
+      }, fingerprint);
     }
     
-    return await fetch_script(octokit, project_data, data, fingerprint);
+    return await fetch_script(octokit, project_data, {
+      username: data.username,
+      discord_id: data.userid ?? "",
+      note: data.note ?? "",
+      is_premium: true,
+      expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
+    }, fingerprint);
   }
 }
