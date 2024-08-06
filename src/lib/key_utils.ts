@@ -192,15 +192,11 @@ class KeyHelper {
 
     const key_duration = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 1000;
 
-    if (is_checkpoint_expired) {
+    if (is_checkpoint_expired || current_time < new Date(checkpoint_started_at.getTime() + key_duration) || this.get_checkpoint_index() == 0) {
       return false;
     }
 
-    if (current_time < new Date(checkpoint_started_at.getTime() + key_duration)) {
-      return true;
-    } else {
-      return false;
-    }
+    return true;
   }
 
   public get_checkpoint_expiration(): Date {
