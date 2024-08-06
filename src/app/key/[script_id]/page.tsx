@@ -15,14 +15,11 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
 import { Checkpoint } from "./components/checkpoint";
-import { check } from "drizzle-orm/mysql-core";
-import { Key } from "lucide-react";
-import { verify } from "crypto";
 import { verify_turnstile } from "./key_server";
 import { create_key_helper } from "@/lib/key_utils";
 import { generate_key } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { log } from "@/lib/logging";
+
 
 function KeySystemWrapper({
   script_data,
@@ -150,7 +147,6 @@ export default async function KeyPage({
   description = description.replace("{time}", time);
 
   if (key_type == "checkpoint") {
-    await log(`key_type : "checkpoint"`);
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     // Handle checkpoint key started
@@ -159,7 +155,6 @@ export default async function KeyPage({
       current_checkpoint_index = 0;
     }
     
-    await log(`current_checkpoint_index : ${current_checkpoint_index}`);
     // Intermadiate checkpoint reached
     const finished_key_system = KeyUtility.is_keysystem_finished(checkpoints_db_response.length);
     let error_key_occured = false;
@@ -171,7 +166,6 @@ export default async function KeyPage({
       error_key_occured = !is_valid;
     }
 
-    await log(`error_key_occured : ${error_key_occured}`);
 
     // finished checkpoint
     if (!KeyUtility.is_checkpoint_key_expired() && finished_key_system && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
@@ -185,7 +179,7 @@ export default async function KeyPage({
     const host = headers().get("host") ?? "";
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
-    await log(`next_checkpoint_url : ${next_checkpoint_url}`);
+
     if (current_checkpoint_index < checkpoints_db_response.length) {
       await KeyUtility.finish_checkpoint();
     } else if (next_checkpoint_url == undefined) {
