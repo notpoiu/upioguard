@@ -142,7 +142,7 @@ class KeyHelper {
   }
 
   public get_checkpoint_expiration(): Date {
-    const additional_time = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 1000;
+    const additional_time = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 60 * 1000;
     return new Date(this.get_checkpoint_finished_at().getTime() + additional_time);
   }
 
