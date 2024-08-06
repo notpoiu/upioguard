@@ -112,6 +112,10 @@ class KeyHelper {
     return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() > this.get_checkpoint_expiration();
   }
 
+  public get_checkpoint_started_at() {
+    return new Date(this.key_data.checkpoint_started_at?.getTime() ?? new Date().getTime());
+  }
+
   // Assummes that the KeyHelper.finish_checkpoint() has been called
   public is_keysystem_finished(total_checkpoints: number) {
     if (this.get_key_type() != "checkpoint") {
@@ -121,6 +125,20 @@ class KeyHelper {
     const checkpoint_valid = this.get_checkpoint_index() == total_checkpoints && total_checkpoints != 0;
 
     return checkpoint_valid && !this.is_checkpoint_key_expired();
+  }
+
+  public is_keysystem_started() {
+    const current_time = new Date();
+    const checkpoint_started_at = this.get_checkpoint_started_at();
+    const is_checkpoint_expired = this.is_checkpoint_key_expired();
+
+    const key_duration = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 1000;
+
+    if (is_checkpoint_expired) {
+      return false;
+    }
+    
+    return checkpoint_started_at < current_time && current_time < this.get_checkpoint_expiration();
   }
 
   public get_checkpoint_expiration(): Date {

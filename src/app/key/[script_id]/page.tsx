@@ -165,7 +165,8 @@ export default async function KeyPage({
     let error_key_occured = false;
 
     const verify_turnstile_cookie = cookies().get("upioguard-turnstile");
-    if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system && verify_turnstile_cookie) {
+    const is_keysystem_started = KeyUtility.is_keysystem_started();
+    if (!KeyUtility.is_checkpoint_key_expired() && !finished_key_system && verify_turnstile_cookie && is_keysystem_started) {
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
       error_key_occured = !is_valid;
     }
