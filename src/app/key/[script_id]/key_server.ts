@@ -56,8 +56,9 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
       ]
     };
 
-    await log(`Turnstile response: ${JSON.stringify(data)}`);
-    await log(token.value)
+    if (data.error_codes.includes("upioguard-invalid-response")) {
+      return true;
+    }
   
     const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
     return data.success && date_challenge_minimum < new Date().getTime();
