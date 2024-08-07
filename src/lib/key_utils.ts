@@ -253,7 +253,7 @@ class KeyHelper {
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
     
-    if (checkpoint_count.length >= new_checkpoint_index) {
+    if (checkpoint_count.length <= new_checkpoint_index) {
       await db.update(users).set({
         checkpoint_index: checkpoint_count.length.toString(),
         checkpoints_finsihed: true,

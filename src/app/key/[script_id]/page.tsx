@@ -152,9 +152,11 @@ export default async function KeyPage({
   if (key_type == "checkpoint") {
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
-    
-    if (KeyUtility.is_checkpoint_key_expired() && !KeyUtility.get_checkpoint_key_started()) {
+    let show_checkpoint = false;
+    if (KeyUtility.is_checkpoint_key_expired() || KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && current_checkpoint_index == 0) {
+      console.log("starting checkpoint");
       await KeyUtility.start_checkpoint();
+      show_checkpoint = true;
       current_checkpoint_index = 0;
     }
     
@@ -162,7 +164,9 @@ export default async function KeyPage({
     let error_key_occured = false;
 
     const verify_turnstile_cookie = cookies().get("upioguard-turnstile");
-    if (KeyUtility.is_checkpoint_key_expired() && verify_turnstile_cookie && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
+    if (KeyUtility.is_checkpoint_key_expired() || verify_turnstile_cookie && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
+      console.log("verifying turnstile");
+      show_checkpoint = true;
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
       error_key_occured = !is_valid;
     }
@@ -170,6 +174,7 @@ export default async function KeyPage({
 
     // finished checkpoint
     if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
+      console.log("finishing checkpoint");
       await KeyUtility.finish_checkpoint();
     }
   
@@ -179,9 +184,7 @@ export default async function KeyPage({
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
 
-    if (current_checkpoint_index < checkpoints_db_response.length) {
-      await KeyUtility.finish_checkpoint();
-    } else if (next_checkpoint_url == undefined) {
+    if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
     }
 
@@ -206,7 +209,7 @@ export default async function KeyPage({
           </KeyInput>
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() && !error_key_occured && current_checkpoint_index < checkpoints_db_response.length && (
+        {!error_key_occured && show_checkpoint && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
         <RemoveTurnstileCookie />
