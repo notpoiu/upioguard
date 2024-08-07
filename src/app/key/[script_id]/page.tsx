@@ -163,8 +163,8 @@ export default async function KeyPage({
     // Intermadiate checkpoint reached
     let error_key_occured = false;
 
-    const verify_turnstile_cookie = cookies().get("upioguard-turnstile");
-    if (KeyUtility.is_checkpoint_key_expired() || verify_turnstile_cookie && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
+    const verify_turnstile_cookie = cookies().get("upioguard-turnstile")?.value;
+    if (KeyUtility.is_checkpoint_key_expired() || verify_turnstile_cookie != undefined && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
       console.log("verifying turnstile");
       show_checkpoint = true;
       const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
