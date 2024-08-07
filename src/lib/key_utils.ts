@@ -2,8 +2,8 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { Key, project, Project, users } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { checkpoints, Key, project, Project, users } from "@/db/schema";
+import { count, eq, sql } from "drizzle-orm";
 import { check } from "drizzle-orm/mysql-core";
 
 // I coudnt work with the spaghetti code that i made so uh
@@ -172,7 +172,7 @@ class KeyHelper {
   }
 
   public is_checkpoint_key_expired() {
-    return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() < this.get_checkpoint_expiration();
+    return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() > this.get_checkpoint_expiration();
   }
 
   public get_checkpoint_started_at() {
@@ -250,7 +250,20 @@ class KeyHelper {
       }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
       return;
     }
+
+    const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
     
+    if (checkpoint_count.length >= new_checkpoint_index) {
+      await db.update(users).set({
+        checkpoint_index: checkpoint_count.length.toString(),
+        checkpoints_finsihed: true,
+        checkpoints_finished_at: date,
+        checkpoint_started: false,
+        checkpoint_started_at: null,
+      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+      return;
+    }
+
     await db.update(users).set({
       checkpoint_index: new_checkpoint_index.toString(),
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);

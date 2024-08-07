@@ -200,13 +200,13 @@ export default async function KeyPage({
           </div>
         )}
 
-        {key && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_key_started() && !error_key_occured && (
+        {key && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_key_finished() && !error_key_occured && (
           <KeyInput upioguard_key={key}>
             <Input id="key" value={key} readOnly />
           </KeyInput>
         )}
   
-        {key && KeyUtility.is_checkpoint_key_expired() && !KeyUtility.get_checkpoint_key_started() && !error_key_occured && (
+        {key && KeyUtility.is_checkpoint_key_expired() && !error_key_occured && current_checkpoint_index < checkpoints_db_response.length && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
         )}
         <RemoveTurnstileCookie />
