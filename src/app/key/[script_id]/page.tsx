@@ -12,7 +12,7 @@ import { checkpoints, project, Project, users } from "@/db/schema";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
 import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
 import { Checkpoint } from "./components/checkpoint";
 import { verify_turnstile } from "./key_server";
@@ -197,9 +197,11 @@ export default async function KeyPage({
               Something went wrong, maybe you came back to this page too fast (minimum {project_data.minimum_checkpoint_switch_duration} seconds between checkpoints)
             </p>
 
-            <Link href={`/key/${params.script_id}`}>
+            <form action={() => {
+              redirect(`/key/${params.script_id}`);
+            }}>
               <Button className="mt-2">Retry</Button>
-            </Link>
+            </form>
           </div>
         )}
 
