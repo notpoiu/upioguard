@@ -116,6 +116,8 @@ export default async function KeyPage({
       note: null,
       key_type: "checkpoint",
       key: generate_key(),
+      checkpoints_finsihed: false,
+      checkpoint_started: false,
     });
   } else if (user_data_resp.length == 0 && project_data.project_type != "free-paywall") {
     return notFound();
