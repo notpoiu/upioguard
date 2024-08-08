@@ -22,13 +22,7 @@ Example turnstile response
   "cdata": "sessionid-123456789"
 }
  */
-export async function verify_turnstile(url: string, project_id: string) {
-  const token = cookies().get("upioguard-turnstile") ?? { value: "Invalid token" };
-  const host = (headers().get("host") ?? "localhost:3000").replaceAll("http://", "").replaceAll("https://", "").trim();
-
-  if (token.value == "Invalid token") {
-    return false;
-  }
+export async function verify_turnstile(url: string, project_id: string, token: string) {
 
   if (process.env.NODE_ENV == "development") {
     return true;
@@ -38,7 +32,7 @@ export async function verify_turnstile(url: string, project_id: string) {
     method: "POST",
     body: JSON.stringify({
       secret: SECRET_KEY,
-      response: token.value,
+      response: token,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -46,6 +40,7 @@ export async function verify_turnstile(url: string, project_id: string) {
   })
   
   const JSON_DATA = await response.json();
+  console.log(JSON_DATA);
   if (JSON_DATA.success) {
     const KeyUtility = await create_key_helper(project_id);
     const response = await KeyUtility.increment_checkpoint_index();

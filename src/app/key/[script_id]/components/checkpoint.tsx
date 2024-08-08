@@ -30,7 +30,7 @@ export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project
       {captchaToken && (
         <BlurFade inView duration={0.2} className="flex justify-center items-center">
           <Button onClick={() => {
-            verify_turnstile(checkpointurl, project_id).then((is_valid) => {
+            verify_turnstile(checkpointurl, project_id, captchaToken).then((is_valid) => {
               if (!is_valid) {
                 toast.error(`Sorry something went wrong, maybe you came back to this page too fast (minimum ${minimum_checkpoint_switch_duration} seconds between checkpoints)`);
                 return;
