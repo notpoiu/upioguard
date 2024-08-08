@@ -254,20 +254,15 @@ class KeyHelper {
     }
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
-    console.log(checkpoint_count);
-    console.log("finish checkpoint below");
     if (checkpoint_count.length == new_checkpoint_index || checkpoint_count.length == current_checkpoint_index) {
-      this.finish_checkpoint();
-      console.log("finish checkpoint finsihed");
+      await this.finish_checkpoint();
       return true;
     }
 
-    console.log("increment checkpoint index");
     await db.update(users).set({
       checkpoint_index: new_checkpoint_index.toString(),
       checkpoint_last_finished_at: date,
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
-    console.log("increment checkpoint index finsihed to", new_checkpoint_index);
     return true;
   }
 

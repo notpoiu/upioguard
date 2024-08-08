@@ -8,7 +8,6 @@ import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
 import { is, sql } from "drizzle-orm";
 import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
-import { log } from "@/lib/logging";
 // @ts-ignore
 import { minify } from 'luamin';
 

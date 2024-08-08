@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { create_key_helper } from "@/lib/key_utils";
-import { log } from "@/lib/logging";
 
 const SECRET_KEY = process.env.NODE_ENV == "production" ? process.env.TURNSTILE_SECRET_KEY ?? "1x00000000000000000000AA" : "1x00000000000000000000AA";
 
@@ -39,10 +38,8 @@ export async function verify_turnstile(url: string, project_id: string, token: s
   })
   
   const JSON_DATA = await response.json();
-  console.log(JSON_DATA);
   if (JSON_DATA.success) {
     const KeyUtility = await create_key_helper(project_id);
-    console.log(KeyUtility.get_checkpoint_index());
     const response = await KeyUtility.increment_checkpoint_index();
 
     if (response) {
