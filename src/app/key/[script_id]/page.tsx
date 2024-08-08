@@ -152,16 +152,18 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     let show_checkpoint = false;
+    let is_checkpoint_finshed = false;
     // finished checkpoint
     if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
       console.log("finishing checkpoint");
       await KeyUtility.finish_checkpoint();
+      is_checkpoint_finshed = true;
     }
     
     const is_expired = KeyUtility.is_checkpoint_key_expired();
     const is_in_intermediate = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished();
     const is_finished_and_not_expired = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && !KeyUtility.is_checkpoint_key_expired();
-    if (is_expired && !is_in_intermediate || !is_finished_and_not_expired) {
+    if (is_expired && !is_in_intermediate || !is_finished_and_not_expired && !is_checkpoint_finshed) {
       await KeyUtility.start_checkpoint();
       show_checkpoint = true;
       current_checkpoint_index = 0;
@@ -170,14 +172,14 @@ export default async function KeyPage({
     // Intermadiate checkpoint reached
     let error_key_occured = false;
 
-    if ((KeyUtility.key_data.checkpoint_last_finished_at != undefined || KeyUtility.key_data.checkpoint_last_finished_at != null)) {
+    if ((KeyUtility.key_data.checkpoint_last_finished_at != undefined || KeyUtility.key_data.checkpoint_last_finished_at != null) && !is_checkpoint_finshed) {
       const defined_date = new Date((KeyUtility.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime()).getTime()
       if ((new Date().getTime() - defined_date) < parseInt(KeyUtility.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 20) {
         error_key_occured = true;
       } else {
         show_checkpoint = true;
       }
-    } else if (KeyUtility.key_data.checkpoint_last_finished_at == null || KeyUtility.key_data.checkpoint_last_finished_at == undefined) {
+    } else if (KeyUtility.key_data.checkpoint_last_finished_at == null || KeyUtility.key_data.checkpoint_last_finished_at == undefined && !is_checkpoint_finshed) {
       show_checkpoint = true;
     }
   
