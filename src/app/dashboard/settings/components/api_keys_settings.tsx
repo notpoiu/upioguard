@@ -112,12 +112,13 @@ export default function ApiKeysSettings({projects}: {projects: Project[]}) {
                   <Input placeholder="Name of the API key" value={key_name} onChange={(e) => setKeyName(e.target.value)} />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label className="text-sm">Project</Label>
+                  <Label className="text-sm">Scripts</Label>
                   <Select onValueChange={(value) => setProjectId(value as string)} value={project_id}>
                     <SelectTrigger id="key_type"  className="w-[180px]">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent position="popper">
+                      <SelectItem value={"all"}>All Scripts</SelectItem>
                       {projects.map((project, index) => (
                         <SelectItem key={index} value={project.project_id}>{project.name}</SelectItem>
                       ))}

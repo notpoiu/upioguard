@@ -36,24 +36,25 @@ export default async function middleware(request: NextApiRequest, response: Next
 
   if (pathname.match(/\/api\/script\/[a-zA-Z0-9]+\/manage/)) {
     const script_id = pathname.split("/").splice(3, 1)[0];
-    const session = await auth();
-
-    const resp_project_api_keys = await db.select().from(project_api_keys).where(eq(project_api_keys.project_id, script_id));
-    const valid_keys = resp_project_api_keys.map((x) => x.api_key);
     
     let api_key = headers().get("api-key");
 
-    console.log(valid_keys.includes(api_key ?? ""))
-    if (!session && valid_keys.includes(api_key ?? "")) {
-      return NextResponse.next();
+    if (api_key == undefined || api_key.trim() == "" || api_key == null) {
+      try {
+        await validate_permissions(script_id);
+        return NextResponse.next();
+      } catch (e) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
-    
-    try {
-      await validate_permissions(script_id);
 
-      return NextResponse.next();
-    } catch (e) {
+    const resp_project_api_keys = await db.select().from(project_api_keys).where(eq(project_api_keys.api_key, api_key));
+    const api_key_data = resp_project_api_keys[0];
+
+    if (api_key_data.project_id != script_id && api_key_data.project_id != "all") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    return NextResponse.next();
   }
 }
