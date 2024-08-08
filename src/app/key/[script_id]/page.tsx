@@ -154,9 +154,7 @@ export default async function KeyPage({
     let show_checkpoint = false;
     let is_checkpoint_finshed = false;
     // finished checkpoint
-    if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
-      console.log("finishing checkpoint");
-      await KeyUtility.finish_checkpoint();
+    if (!KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length && KeyUtility.get_checkpoint_key_finished()) {
       is_checkpoint_finshed = true;
     }
     
