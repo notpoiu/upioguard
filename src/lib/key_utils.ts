@@ -254,43 +254,29 @@ class KeyHelper {
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
 
-    if ((this.key_data.checkpoint_last_finished_at != undefined || this.key_data.checkpoint_last_finished_at != null) && new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < new Date().getTime() && !this.get_checkpoint_key_finished()) {
-      if (checkpoint_count.length <= new_checkpoint_index) {
-        await db.update(users).set({
-          checkpoint_index: checkpoint_count.length.toString(),
-          checkpoints_finished: true,
-          checkpoints_finished_at: date,
-          checkpoint_started: false,
-          checkpoint_started_at: null,
-          checkpoint_last_finished_at: null,
-        }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
-        return true;
+    if ((this.key_data.checkpoint_last_finished_at != undefined || this.key_data.checkpoint_last_finished_at != null)) {
+      if (new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() > new Date().getTime() && !this.get_checkpoint_key_finished()) {
+        return false;
       }
-  
-      await db.update(users).set({
-        checkpoint_index: new_checkpoint_index.toString(),
-        checkpoint_last_finished_at: date,
-      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
-    } else if (this.key_data.checkpoint_last_finished_at == undefined || this.key_data.checkpoint_last_finished_at == null) {
-      if (checkpoint_count.length <= new_checkpoint_index) {
-        await db.update(users).set({
-          checkpoint_index: checkpoint_count.length.toString(),
-          checkpoints_finished: true,
-          checkpoints_finished_at: date,
-          checkpoint_started: false,
-          checkpoint_started_at: null,
-          checkpoint_last_finished_at: null,
-        }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
-        return true;
-      }
-  
-      await db.update(users).set({
-        checkpoint_index: new_checkpoint_index.toString(),
-        checkpoint_last_finished_at: date,
-      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
     }
 
-    return false;
+    if (checkpoint_count.length <= new_checkpoint_index) {
+      await db.update(users).set({
+        checkpoint_index: checkpoint_count.length.toString(),
+        checkpoints_finished: true,
+        checkpoints_finished_at: date,
+        checkpoint_started: false,
+        checkpoint_started_at: null,
+        checkpoint_last_finished_at: null,
+      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+      return true;
+    }
+
+    await db.update(users).set({
+      checkpoint_index: new_checkpoint_index.toString(),
+      checkpoint_last_finished_at: date,
+    }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+    return true;
   }
 
   public async finish_checkpoint() {
