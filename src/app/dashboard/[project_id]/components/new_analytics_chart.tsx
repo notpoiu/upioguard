@@ -52,48 +52,40 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
     get_total_executions(project_id).then((data) => {      
       setTotalExecutions(data[0].count);
     });
-
+  
     fetch_project_executions(project_id).then((data) => {
       setRawExecutionData(data);
-
+  
       setLastMonthTotal(data.filter((execution) => new Date(execution.execution_timestamp).getMonth() === new Date().getMonth() - 1).length);
       setThisMonthTotal(data.filter((execution) => new Date(execution.execution_timestamp).getMonth() === new Date().getMonth()).length);
-
+  
       function normalizeToUTC(date: Date): string {
         const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         return utcDate.toISOString().split("T")[0];
       }
-
-      let organized_data_test: any = {};
+  
       let organized_data: any[] = [];
-
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - date.getDay() + i + 1);
-        organized_data_test[normalizeToUTC(date)] = {
+      
+      const today = new Date();
+      for (let i = -1; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dateKey = normalizeToUTC(date);
+        organized_data.unshift({
+          date: dateKey,
           desktop: 0,
           mobile: 0,
-        };
-      }
-
-      for (const execution of data) {
-        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp));
-
-        if (!organized_data_test[executionDate]) {
-          continue;
-        }
-
-        organized_data_test[executionDate][execution.execution_type] += 1;
-      }
-
-      for (const date in organized_data_test) {
-        organized_data.push({
-          date: date,
-          desktop: organized_data_test[date].desktop,
-          mobile: organized_data_test[date].mobile,
         });
       }
-
+      
+      for (const execution of data) {
+        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp));
+        const index = organized_data.findIndex((item) => item.date === executionDate);
+        if (index !== -1) {
+          organized_data[index][execution.execution_type] += 1;
+        }
+      }
+  
       setChartData(organized_data);
     });
   }
@@ -213,7 +205,7 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
             })}
           </div>
         </CardHeader>
-        <CardContent className="px-2 sm:p-6">
+        <CardContent className="px-2 py-2 sm:p-6">
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"
@@ -224,6 +216,8 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
               margin={{
                 left: 12,
                 right: 12,
+                top: 8,
+                bottom: 8,
               }}
             >
               <CartesianGrid vertical={false} />
