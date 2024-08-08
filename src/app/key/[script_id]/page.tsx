@@ -152,6 +152,12 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     let show_checkpoint = false;
+    // finished checkpoint
+    if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
+      console.log("finishing checkpoint");
+      await KeyUtility.finish_checkpoint();
+    }
+    
     const is_expired = KeyUtility.is_checkpoint_key_expired();
     const is_in_intermediate = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished();
     const is_finished_and_not_expired = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && !KeyUtility.is_checkpoint_key_expired();
@@ -173,13 +179,6 @@ export default async function KeyPage({
       }
     } else if (KeyUtility.key_data.checkpoint_last_finished_at == null || KeyUtility.key_data.checkpoint_last_finished_at == undefined) {
       show_checkpoint = true;
-    }
-
-
-    // finished checkpoint
-    if (KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length) {
-      console.log("finishing checkpoint");
-      await KeyUtility.finish_checkpoint();
     }
   
     // handle checkpoint   
