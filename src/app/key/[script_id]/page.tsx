@@ -20,6 +20,7 @@ import { create_key_helper } from "@/lib/key_utils";
 import { generate_key } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { RateLimit } from "./components/ratelimit";
 
 
 function KeySystemWrapper({
@@ -195,19 +196,7 @@ export default async function KeyPage({
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
         {error_key_occured && (
-          <div className="flex flex-col justify-center items-center">
-            <h1 className="text-2xl font-bold">Error</h1>
-            <p className="text-lg">
-              Something went wrong, maybe you came back to this page too fast (minimum {project_data.minimum_checkpoint_switch_duration} seconds between checkpoints)
-            </p>
-
-            <form action={async () => {
-              "use server";
-              redirect(`/key/${params.script_id}`);
-            }}>
-              <Button className="mt-2">Retry</Button>
-            </form>
-          </div>
+          <RateLimit minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"} />
         )}
 
         {key && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_key_finished() && !error_key_occured && (
