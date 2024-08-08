@@ -39,6 +39,24 @@ const reviews = [
     username: "@notchron",
     body: "its open source so you can add shit urself you lazy bum",
     img: "/reviewpfps/chrono.png",
+  },
+  {
+    name: "mstudio45",
+    username: "@mstudio45",
+    body: "damn this shit is clean 🔥",
+    img: "/reviewpfps/mstudio45.ico",
+  },
+  {
+    name: "ense",
+    username: "@ense._",
+    body: "opensource so its immediatly better than anything else on the market",
+    img: "/reviewpfps/ense.ico",
+  },
+  {
+    name: "Master Oogway",
+    username: "@realmasteroogway",
+    body: "Upioguard makes whitelisting too easy, I'm using it for my hub and it is great! 🐢",
+    img: "/reviewpfps/oogway.png",
   }
 ];
  
@@ -182,7 +200,7 @@ export default async function Home() {
         </BlurFade>
         <BlurFade delay={1.5} inView className="w-full flex justify-center items-center">
           <div className="relative flex w-full flex-col items-center justify-center overflow-hidden bg-background md:shadow-xl">
-            <Marquee className="[--duration:10s]">
+            <Marquee className="[--duration:20s]">
               {reviews.map((review) => (
                 <ReviewCard key={review.username} {...review} />
               ))}
