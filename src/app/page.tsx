@@ -25,6 +25,57 @@ import { admins } from "@/db/schema";
 
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
+import Marquee from "@/components/magicui/marquee";
+
+const reviews = [
+  {
+    name: "deivid",
+    username: "@deividcomsono",
+    body: "Makes your whitelist easier but dosen't even obfuscate, dont use that shit 🔥",
+    img: "/reviewpfps/deivid.png",
+  },
+  {
+    name: "chrono",
+    username: "@notchron",
+    body: "its open source so you can add shit urself you lazy bum",
+    img: "/reviewpfps/chrono.png",
+  }
+];
+ 
+const ReviewCard = ({
+  img,
+  name,
+  username,
+  body,
+}: {
+  img: string;
+  name: string;
+  username: string;
+  body: string;
+}) => {
+  return (
+    <figure
+      className={cn(
+        "relative w-64 cursor-pointer overflow-hidden rounded-xl border p-4",
+        // light styles
+        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+        // dark styles
+        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
+      )}
+    >
+      <div className="flex flex-row items-center gap-2">
+        <Image className="rounded-full" width={32} height={32} alt="" src={img} />
+        <div className="flex flex-col">
+          <figcaption className="text-sm font-medium dark:text-white">
+            {name}
+          </figcaption>
+          <p className="text-xs font-medium dark:text-white/40">{username}</p>
+        </div>
+      </div>
+      <blockquote className="mt-2 text-sm">{body}</blockquote>
+    </figure>
+  );
+};
 
 export default async function Home() {
   const session = await auth();
@@ -121,6 +172,26 @@ export default async function Home() {
             </MagicCard>
           </BlurFade>
         </div>
+      </BlurFade>
+
+      <BlurFade delay={1} inView className="w-screen fle flex-col justify-center items-center mt-[20vw] px-10">
+        <BlurFade delay={1.25} inView className="w-screen flex justify-center items-center">
+          <h1 className="text-2xl leading-relaxed font-bold mb-5">
+            Here&apos;s what people say about <span className="magic-text">upioguard</span>
+          </h1>
+        </BlurFade>
+        <BlurFade delay={1.5} inView className="w-full flex justify-center items-center">
+          <div className="relative flex w-full flex-col items-center justify-center overflow-hidden bg-background md:shadow-xl">
+            <Marquee className="[--duration:10s]">
+              {reviews.map((review) => (
+                <ReviewCard key={review.username} {...review} />
+              ))}
+            </Marquee>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-white dark:from-background"></div>
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-white dark:from-background"></div>
+          </div>
+        </BlurFade>
+
       </BlurFade>
       {!session && !does_exist && (
         <form
