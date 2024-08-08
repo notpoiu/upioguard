@@ -254,9 +254,9 @@ class KeyHelper {
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
 
-    console.log(checkpoint_count, this.key_data.checkpoint_last_finished_at, new Date().getTime(), this.get_checkpoint_key_finished());
     if ((this.key_data.checkpoint_last_finished_at != undefined || this.key_data.checkpoint_last_finished_at != null)) {
-      if (new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < new Date().getTime() && !this.get_checkpoint_key_finished()) {
+      const defined_date = new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime()).getTime()
+      if ((new Date().getTime() - defined_date) < parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 20) {
         return false;
       }
     }

@@ -161,8 +161,13 @@ export default async function KeyPage({
     // Intermadiate checkpoint reached
     let error_key_occured = false;
 
-    if (KeyUtility.key_data.checkpoint_last_finished_at != null && new Date((KeyUtility.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(KeyUtility.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < new Date().getTime() && !KeyUtility.get_checkpoint_key_finished()) {
-      error_key_occured = true;
+    if ((KeyUtility.key_data.checkpoint_last_finished_at != undefined || KeyUtility.key_data.checkpoint_last_finished_at != null)) {
+      const defined_date = new Date((KeyUtility.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime()).getTime()
+      if ((new Date().getTime() - defined_date) < parseInt(KeyUtility.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 20) {
+        error_key_occured = true;
+      } else {
+        show_checkpoint = true;
+      }
     }
 
 
@@ -172,8 +177,7 @@ export default async function KeyPage({
       await KeyUtility.finish_checkpoint();
     }
   
-    // handle checkpoint
-    
+    // handle checkpoint   
     const host = headers().get("host") ?? "";
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;

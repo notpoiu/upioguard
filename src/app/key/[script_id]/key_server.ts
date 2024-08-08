@@ -23,7 +23,6 @@ Example turnstile response
 }
  */
 export async function verify_turnstile(url: string, project_id: string, token: string) {
-
   if (process.env.NODE_ENV == "development") {
     return true;
   }
@@ -43,15 +42,15 @@ export async function verify_turnstile(url: string, project_id: string, token: s
   console.log(JSON_DATA);
   if (JSON_DATA.success) {
     const KeyUtility = await create_key_helper(project_id);
+    console.log(KeyUtility.get_checkpoint_index());
     const response = await KeyUtility.increment_checkpoint_index();
 
     if (response) {
       redirect(url);
-      return true;
     } else {
       return false;
     }
   }
 
-  return false;
+  return true;
 }
