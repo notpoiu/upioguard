@@ -168,6 +168,8 @@ export default async function KeyPage({
       } else {
         show_checkpoint = true;
       }
+    } else if (KeyUtility.key_data.checkpoint_last_finished_at == null || KeyUtility.key_data.checkpoint_last_finished_at == undefined) {
+      show_checkpoint = true;
     }
 
 

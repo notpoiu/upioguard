@@ -263,14 +263,7 @@ class KeyHelper {
     }
 
     if (checkpoint_count.length == new_checkpoint_index || checkpoint_count.length == current_checkpoint_index) {
-      await db.update(users).set({
-        checkpoint_index: checkpoint_count.length.toString(),
-        checkpoints_finished: true,
-        checkpoints_finished_at: date,
-        checkpoint_started: false,
-        checkpoint_started_at: null,
-        checkpoint_last_finished_at: null,
-      }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+      this.finish_checkpoint();
       return true;
     }
 
@@ -294,7 +287,7 @@ class KeyHelper {
       checkpoints_finished: true,
       checkpoints_finished_at: date,
       checkpoint_started: false,
-      checkpoint_last_finished_at: date,
+      checkpoint_last_finished_at: null,
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 }
