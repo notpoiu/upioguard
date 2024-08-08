@@ -283,11 +283,14 @@ class KeyHelper {
     this.key_data.checkpoints_finished_at = date;
     this.key_data.checkpoints_finished = true;
 
+    const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
+    this.key_data.checkpoint_index = checkpoint_count.length.toString();
     await db.update(users).set({
       checkpoints_finished: true,
       checkpoints_finished_at: date,
       checkpoint_started: false,
       checkpoint_last_finished_at: null,
+      checkpoint_index: checkpoint_count.length.toString(),
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
   }
 }
