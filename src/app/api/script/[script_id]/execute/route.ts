@@ -421,7 +421,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
       console.log(KeyHelper.is_checkpoint_key_expired(), KeyHelper.get_checkpoint_key_finished());
       console.log(key_type, KeyHelper.is_checkpoint_key_expired(), KeyHelper.get_checkpoint_key_finished());
-      if (key_type == "checkpoint" && KeyHelper.is_checkpoint_key_expired() && KeyHelper.get_checkpoint_key_finished()) {
+      if (key_type == "checkpoint" && KeyHelper.is_checkpoint_key_expired()) {
         data.is_premium = false;
       }
 

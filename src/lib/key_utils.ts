@@ -172,12 +172,16 @@ class KeyHelper {
     return this.key_data.checkpoints_finished_at != null && this.key_data.checkpoints_finished_at;
   }
 
-  public is_checkpoint_key_expired() {
-    const finishedAt = this.get_checkpoint_finished_at().getTime();
-    const expiration = this.get_checkpoint_expiration().getTime();
+  public is_checkpoint_key_expired(): boolean {
+    if (!this.key_data.checkpoints_finished_at) {
+      return false;
+    }
+  
+    const finishedAt = this.key_data.checkpoints_finished_at.getTime();
     const now = new Date().getTime();
-
-    return this.key_data.checkpoints_finished_at != null && finishedAt < expiration && expiration < now;
+    const expirationDuration = parseInt(this.project_data.linkvertise_key_duration ?? "1") * 60 * 60 * 1000; // Convert hours to milliseconds
+  
+    return finishedAt + expirationDuration < now;
   }
 
   public get_checkpoint_started_at() {
