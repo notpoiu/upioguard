@@ -254,7 +254,7 @@ class KeyHelper {
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
 
-    if (new Date().getTime() - new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < 0) {
+    if (this.key_data.checkpoint_last_finished_at != null && new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < new Date().getTime() && !this.get_checkpoint_key_finished()) {
       return false;
     }
 
