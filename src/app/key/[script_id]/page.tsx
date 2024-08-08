@@ -153,8 +153,6 @@ export default async function KeyPage({
     
     let show_checkpoint = false;
     let is_checkpoint_finshed = false;
-    console.log("checkpoints", checkpoints_db_response.length,"current checkpoint", current_checkpoint_index);
-    console.log("start checkpoint", KeyUtility.get_checkpoint_key_started(), "finished checkpoint", KeyUtility.get_checkpoint_key_finished());
     // finished checkpoint
     if (!KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length && KeyUtility.get_checkpoint_key_finished()) {
       is_checkpoint_finshed = true;
@@ -163,8 +161,6 @@ export default async function KeyPage({
     const is_expired = KeyUtility.is_checkpoint_key_expired();
     const is_in_intermediate = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished();
     const is_finished_and_not_expired = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && !KeyUtility.is_checkpoint_key_expired();
-    console.log("is_expired", is_expired, "is_in_intermediate", is_in_intermediate, "is_finished_and_not_expired", is_finished_and_not_expired);
-    console.log("is_checkpoint_finshed", is_checkpoint_finshed);
     if (is_expired && !is_in_intermediate || !is_finished_and_not_expired) {
       if (is_checkpoint_finshed == false) {
         await KeyUtility.start_checkpoint();
@@ -220,7 +216,7 @@ export default async function KeyPage({
           </KeyInput>
         )}
   
-        {!error_key_occured && show_checkpoint && (
+        {!error_key_occured && show_checkpoint && !is_checkpoint_finshed && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id} minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"}  />
         )}
       </KeySystemWrapper>

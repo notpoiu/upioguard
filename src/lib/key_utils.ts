@@ -283,6 +283,7 @@ class KeyHelper {
       checkpoints_finished: true,
       checkpoints_finished_at: date,
       checkpoint_started: false,
+      checkpoint_started_at: null,
       checkpoint_last_finished_at: null,
       checkpoint_index: checkpoint_count.length.toString(),
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
