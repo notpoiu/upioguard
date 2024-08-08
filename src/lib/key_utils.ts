@@ -235,6 +235,7 @@ class KeyHelper {
   public async increment_checkpoint_index() {
     const date = new Date();
 
+    let current_checkpoint_index = parseInt(this.key_data.checkpoint_index);
     let new_checkpoint_index = parseInt(this.key_data.checkpoint_index) + 1;
     
     const session = await auth();
@@ -261,7 +262,7 @@ class KeyHelper {
       }
     }
 
-    if (checkpoint_count.length <= new_checkpoint_index) {
+    if (checkpoint_count.length == new_checkpoint_index || checkpoint_count.length == current_checkpoint_index) {
       await db.update(users).set({
         checkpoint_index: checkpoint_count.length.toString(),
         checkpoints_finished: true,
