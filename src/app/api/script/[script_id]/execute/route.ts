@@ -460,7 +460,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         username: user_data.username,
         discord_id: user_data.discord_id ?? "",
         note: user_data.note ?? "",
-        is_premium: true,
+        is_premium: data.is_premium,
         expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
       }, fingerprint);
     }
@@ -469,7 +469,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
       username: data.username,
       discord_id: data.userid ?? "",
       note: data.note ?? "",
-      is_premium: true,
+      is_premium: data.is_premium,
       expiry: KeyHelper.get_general_expiration() == null ? "nil" : `os.time() + ${((KeyHelper.get_general_expiration() as Date).getTime() - new Date().getTime()) / 1000}`,
     }, fingerprint);
   }
