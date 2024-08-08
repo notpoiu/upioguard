@@ -10,7 +10,7 @@ import {
 import { db } from "@/db";
 import { checkpoints, project, Project, users } from "@/db/schema";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
-import { eq, is } from "drizzle-orm";
+import { eq, is, sql } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
@@ -105,7 +105,7 @@ export default async function KeyPage({
 
   const checkpoints_db_response = await db.select().from(checkpoints).where(eq(checkpoints.project_id, params.script_id));
 
-  const user_data_resp = await db.select().from(users).where(eq(users.discord_id, session.user.id));
+  const user_data_resp = await db.select().from(users).where(sql`${users.discord_id} = ${session.user.id} AND ${users.project_id} = ${params.script_id}`);
 
   if (user_data_resp.length == 0 && project_data.project_type == "free-paywall") {
     await db.insert(users).values({

@@ -165,11 +165,11 @@ class KeyHelper {
   }
 
   public get_checkpoint_key_started() {
-    return this.key_data.checkpoint_started != null;
+    return this.key_data.checkpoint_started != null && this.key_data.checkpoint_started;
   }
 
   public get_checkpoint_key_finished() {
-    return this.key_data.checkpoints_finished_at != null;
+    return this.key_data.checkpoints_finished_at != null && this.key_data.checkpoints_finished_at;
   }
 
   public is_checkpoint_key_expired() {
