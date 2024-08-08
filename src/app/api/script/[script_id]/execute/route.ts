@@ -421,10 +421,18 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
 
       const checkpoints_db_response = await db.select().from(checkpoints).where(eq(checkpoints.project_id, project_data.project_id));
       const condition_checkpoint = !KeyHelper.get_checkpoint_key_started() && !KeyHelper.is_checkpoint_key_expired() && KeyHelper.get_checkpoint_index() == checkpoints_db_response.length && KeyHelper.get_checkpoint_key_finished();
-      if (key_type == "checkpoint" && !condition_checkpoint) {
+      if (key_type == "checkpoint" && !condition_checkpoint && project_data.minimum_checkpoint_switch_duration != null) {
+        const now = new Date();
+        const checkpoint_expiration = KeyHelper.get_checkpoint_expiration();
+        if (checkpoint_expiration && checkpoint_expiration.getTime() > now.getTime()) {
+          data.is_premium = false;
+        } else {
+          data.is_premium = true;
+        }
+      } else if (key_type == "checkpoint" && !condition_checkpoint && project_data.minimum_checkpoint_switch_duration == null) {
         data.is_premium = false;
       }
-
+      
       if (!user_data.hwid || !user_data.executor) {
         await db.update(users).set({ hwid: fingerprint, executor: executor }).where(eq(users.key, key));
       } else {
