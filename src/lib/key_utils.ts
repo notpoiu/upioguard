@@ -173,7 +173,7 @@ class KeyHelper {
   }
 
   public is_checkpoint_key_expired() {
-    return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() < this.get_checkpoint_expiration();
+    return this.key_data.checkpoints_finished_at != null && this.get_checkpoint_finished_at() < this.get_checkpoint_expiration() && this.get_checkpoint_expiration().getTime() > new Date().getTime();
   }
 
   public get_checkpoint_started_at() {
