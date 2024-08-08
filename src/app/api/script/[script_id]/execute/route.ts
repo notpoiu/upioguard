@@ -1,7 +1,7 @@
 // TODO: rewrite this api route
 
 import { db } from "@/db";
-import { banned_users, project, project_executions, users } from "@/db/schema";
+import { banned_users, checkpoints, project, project_executions, users } from "@/db/schema";
 import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
@@ -419,9 +419,9 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
         data.is_premium = false;
       }
 
-      console.log(KeyHelper.is_checkpoint_key_expired(), KeyHelper.get_checkpoint_key_finished());
-      console.log(key_type, KeyHelper.is_checkpoint_key_expired(), KeyHelper.get_checkpoint_key_finished());
-      if (key_type == "checkpoint" && KeyHelper.is_checkpoint_key_expired()) {
+      const checkpoints_db_response = await db.select().from(checkpoints).where(eq(checkpoints.project_id, project_data.project_id));
+      const condition_checkpoint = !KeyHelper.get_checkpoint_key_started() && !KeyHelper.is_checkpoint_key_expired() && KeyHelper.get_checkpoint_index() == checkpoints_db_response.length && KeyHelper.get_checkpoint_key_finished();
+      if (key_type == "checkpoint" && !condition_checkpoint) {
         data.is_premium = false;
       }
 
