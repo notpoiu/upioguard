@@ -150,44 +150,12 @@ export default async function KeyPage({
   description = description.replace("{time}", time);
 
   if (key_type == "checkpoint") {
-    let current_checkpoint_index = KeyUtility.get_checkpoint_index();
-    
-    let show_checkpoint = false;
-    let is_checkpoint_finshed = false;
-    // finished checkpoint
-    if (!KeyUtility.get_checkpoint_key_started() && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_index() == checkpoints_db_response.length && KeyUtility.get_checkpoint_key_finished()) {
-      is_checkpoint_finshed = true;
-    }
-    
-    const is_expired = KeyUtility.is_checkpoint_key_expired();
-    const is_in_intermediate = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished();
-    const is_finished_and_not_expired = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && !KeyUtility.is_checkpoint_key_expired();
-    if (is_expired && !is_in_intermediate || !is_finished_and_not_expired) {
-      if (is_checkpoint_finshed == false) {
-        await KeyUtility.start_checkpoint();
-        show_checkpoint = true;
-        current_checkpoint_index = 0;
-      }
-    }
-    
-    // Intermadiate checkpoint reached
-    let error_key_occured = false;
+    const { show_checkpoint, current_checkpoint_index, error_key_occured } = await KeyUtility.handleCheckpointKey(project_data, checkpoints_db_response);
 
-    if ((KeyUtility.key_data.checkpoint_last_finished_at != undefined || KeyUtility.key_data.checkpoint_last_finished_at != null) && !is_checkpoint_finshed) {
-      const defined_date = new Date((KeyUtility.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime()).getTime()
-      if ((new Date().getTime() - defined_date) < parseInt(KeyUtility.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 20) {
-        error_key_occured = true;
-      } else {
-        show_checkpoint = true;
-      }
-    } else if (KeyUtility.key_data.checkpoint_last_finished_at == null || KeyUtility.key_data.checkpoint_last_finished_at == undefined && !is_checkpoint_finshed) {
-      show_checkpoint = true;
-    }
-  
     // handle checkpoint   
     const host = headers().get("host") ?? "";
   
-    let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index]?.checkpoint_url;
+    let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index ?? 0]?.checkpoint_url;
 
     if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
@@ -199,13 +167,13 @@ export default async function KeyPage({
           <RateLimit minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"} />
         )}
 
-        {key && !KeyUtility.is_checkpoint_key_expired() && KeyUtility.get_checkpoint_key_finished() && !error_key_occured && (
+        {key && !show_checkpoint && !error_key_occured && (
           <KeyInput upioguard_key={key}>
             <Input id="key" value={key} readOnly />
           </KeyInput>
         )}
   
-        {!error_key_occured && show_checkpoint && !is_checkpoint_finshed && (
+        {!error_key_occured && show_checkpoint && (
           <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id} minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"}  />
         )}
       </KeySystemWrapper>

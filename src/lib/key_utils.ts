@@ -172,6 +172,47 @@ class KeyHelper {
     return this.key_data.checkpoints_finished_at != null && this.key_data.checkpoints_finished_at;
   }
 
+  public async handleCheckpointKey(project_data: Project, checkpoints_db_response: any[]) {
+    const key_type = this.get_key_type();
+    if (key_type !== "checkpoint") return { is_premium: true };
+  
+    const checkpointCount = checkpoints_db_response.length;
+    const currentIndex = this.get_checkpoint_index();
+    const isStarted = this.get_checkpoint_key_started();
+    const isFinished = this.get_checkpoint_key_finished();
+    const isExpired = this.is_checkpoint_key_expired();
+  
+    // Check if all checkpoints are completed
+    if (!isStarted && !isExpired && currentIndex === checkpointCount && isFinished) {
+      return { is_premium: true };
+    }
+  
+    // Check if key needs to be restarted
+    if (isExpired || (!isStarted && !isFinished)) {
+      await this.start_checkpoint();
+      return { is_premium: false, show_checkpoint: true, current_checkpoint_index: 0 };
+    }
+  
+    // Check for rate limiting
+    const lastFinishedAt = this.key_data.checkpoint_last_finished_at;
+    const minSwitchDuration = parseInt(project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000; // Convert to milliseconds
+  
+    if (lastFinishedAt && !isFinished) {
+      const timeSinceLastCheckpoint = new Date().getTime() - new Date(lastFinishedAt).getTime();
+      if (timeSinceLastCheckpoint < minSwitchDuration) {
+        return { is_premium: false, error_key_occured: true };
+      }
+    }
+  
+    // Handle intermediate checkpoint
+    if (isStarted && !isFinished) {
+      return { is_premium: false, show_checkpoint: true, current_checkpoint_index: currentIndex };
+    }
+  
+    // Default case: key is valid but not premium
+    return { is_premium: false };
+  }
+
   public is_checkpoint_key_expired(): boolean {
     if (!this.key_data.checkpoints_finished_at) {
       return false;
