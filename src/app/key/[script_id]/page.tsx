@@ -10,7 +10,7 @@ import {
 import { db } from "@/db";
 import { checkpoints, project, Project, users } from "@/db/schema";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
-import { eq } from "drizzle-orm";
+import { eq, is } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { KeyInput } from "./components/valid_key";
@@ -152,7 +152,10 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     let show_checkpoint = false;
-    if (KeyUtility.is_checkpoint_key_expired() || (!KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && current_checkpoint_index == 0)) {
+    const is_expired = KeyUtility.is_checkpoint_key_expired();
+    const is_in_intermediate = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished();
+    const is_finished_and_not_expired = KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && !KeyUtility.is_checkpoint_key_expired();
+    if (is_expired && !is_in_intermediate || !is_finished_and_not_expired) {
       await KeyUtility.start_checkpoint();
       show_checkpoint = true;
       current_checkpoint_index = 0;
