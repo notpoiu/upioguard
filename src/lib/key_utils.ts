@@ -255,13 +255,6 @@ class KeyHelper {
 
     const checkpoint_count = await db.select().from(checkpoints).where(eq(checkpoints.project_id, this.project_id));
 
-    if ((this.key_data.checkpoint_last_finished_at != undefined || this.key_data.checkpoint_last_finished_at != null)) {
-      const defined_date = new Date((this.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime()).getTime()
-      if ((new Date().getTime() - defined_date) < parseInt(this.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 20) {
-        return false;
-      }
-    }
-
     if (checkpoint_count.length == new_checkpoint_index || checkpoint_count.length == current_checkpoint_index) {
       this.finish_checkpoint();
       return true;
@@ -271,6 +264,7 @@ class KeyHelper {
       checkpoint_index: new_checkpoint_index.toString(),
       checkpoint_last_finished_at: date,
     }).where(sql`${users.project_id} = ${this.project_id} AND ${users.discord_id} = ${userid}`);
+    
     return true;
   }
 
