@@ -6,10 +6,10 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import React, { useEffect } from "react";
 import { toast } from "sonner";
-import { set_cookie_turnstile } from "../key_server";
+import { verify_turnstile } from "../key_server";
 import { useRouter } from "next/navigation";
 
-export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project_id }: { env: string, currentCheckpointIndex: number, checkpointurl: string, project_id: string }) {
+export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project_id, minimum_checkpoint_switch_duration }: { env: string, currentCheckpointIndex: number, checkpointurl: string, project_id: string, minimum_checkpoint_switch_duration: string }) {
   const [captchaToken, setCaptchaToken] = React.useState<string>();
 
   const router = useRouter();
@@ -30,8 +30,12 @@ export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project
       {captchaToken && (
         <BlurFade inView duration={0.2} className="flex justify-center items-center">
           <Button onClick={() => {
-            set_cookie_turnstile(captchaToken, checkpointurl, project_id).then(() => {
-              console.log("Set cookie successfully");
+            verify_turnstile(checkpointurl, project_id).then((is_valid) => {
+              if (!is_valid) {
+                toast.error(`Sorry something went wrong, maybe you came back to this page too fast (minimum ${minimum_checkpoint_switch_duration} seconds between checkpoints)`);
+                return;
+              }
+
               router.push(checkpointurl);
             });
           }}>

@@ -22,7 +22,7 @@ Example turnstile response
   "cdata": "sessionid-123456789"
 }
  */
-export async function verify_turnstile(minimum_checkpoint_switch_duration: number) {
+export async function verify_turnstile(url: string, project_id: string) {
   const token = cookies().get("upioguard-turnstile") ?? { value: "Invalid token" };
   const host = (headers().get("host") ?? "localhost:3000").replaceAll("http://", "").replaceAll("https://", "").trim();
 
@@ -45,42 +45,18 @@ export async function verify_turnstile(minimum_checkpoint_switch_duration: numbe
     },
   })
   
-  try {
-    const JSON_DATA = await response.json();
-    const data =  {
-      success: JSON_DATA.success ?? false,
-      challenge_ts: JSON_DATA.challenge_ts ?? new Date().toISOString(),
-      hostname: JSON_DATA.hostname ?? host,
-      error_codes: JSON_DATA.error_codes ?? [
-        "upioguard-invalid-response",
-      ]
-    };
+  const JSON_DATA = await response.json();
+  if (JSON_DATA.success) {
+    const KeyUtility = await create_key_helper(project_id);
+    const response = await KeyUtility.increment_checkpoint_index();
 
-    if (data.error_codes.includes("upioguard-invalid-response")) {
+    if (response) {
+      redirect(url);
       return true;
+    } else {
+      return false;
     }
-  
-    const date_challenge_minimum = new Date(data.challenge_ts).getTime() + minimum_checkpoint_switch_duration * 60 * 1000;
-    return data.success && date_challenge_minimum < new Date().getTime();
-  } catch (e) {
-    return false;
   }
-}
 
-export async function delete_cookie_turnstile() {
-  cookies().delete("upioguard-turnstile");
-}
-
-export async function set_cookie_turnstile(token: string, url: string, project_id: string) {
-  cookies().set("upioguard-turnstile", token, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV == "production",
-  });
-
-  const KeyUtility = await create_key_helper(project_id);
-  await KeyUtility.increment_checkpoint_index();
-
-  redirect(url);
+  return false;
 }

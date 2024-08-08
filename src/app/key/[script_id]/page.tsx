@@ -19,7 +19,6 @@ import { verify_turnstile } from "./key_server";
 import { create_key_helper } from "@/lib/key_utils";
 import { generate_key } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import RemoveTurnstileCookie from "./components/remove_cookie";
 import Link from "next/link";
 
 
@@ -116,7 +115,7 @@ export default async function KeyPage({
       note: null,
       key_type: "checkpoint",
       key: generate_key(),
-      checkpoints_finsihed: false,
+      checkpoints_finished: false,
       checkpoint_started: false,
     });
   } else if (user_data_resp.length == 0 && project_data.project_type != "free-paywall") {
@@ -167,8 +166,8 @@ export default async function KeyPage({
     if (KeyUtility.is_checkpoint_key_expired() || verify_turnstile_cookie != undefined && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
       console.log("verifying turnstile");
       show_checkpoint = true;
-      const is_valid = await verify_turnstile(parseInt(project_data.linkvertise_key_duration ?? "1"));
-      error_key_occured = !is_valid;
+      //
+      //error_key_occured = !is_valid;
     }
 
 
@@ -212,9 +211,8 @@ export default async function KeyPage({
         )}
   
         {!error_key_occured && show_checkpoint && (
-          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id}  />
+          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id} minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"}  />
         )}
-        <RemoveTurnstileCookie />
       </KeySystemWrapper>
     )
   }

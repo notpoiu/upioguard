@@ -113,7 +113,8 @@ export const users = pgTable("users", {
   hwid: text("hwid"),
   executor: text("executor"),
   checkpoint_index: numeric("checkpoint_index").notNull().default("0"),
-  checkpoints_finsihed: boolean("key_finsihed").notNull().default(false),
+  checkpoint_last_finished_at: timestamp("checkpoint_last_finished_at"),
+  checkpoints_finished: boolean("key_finsihed").notNull().default(false),
   checkpoints_finished_at: timestamp("checkpoints_finished_at"),
   checkpoint_started_at: timestamp("checkpoint_started_at"),
   checkpoint_started: boolean("checkpoint_started").notNull().default(false),
@@ -129,9 +130,10 @@ export interface Key {
   note: string | null;
   hwid: string | null;
   executor: string | null;
-  checkpoints_finsihed: boolean;
+  checkpoints_finished: boolean;
   checkpoints_finished_at: Date | null;
   checkpoint_index: string;
+  checkpoint_last_finished_at: Date | null;
   checkpoint_started_at: Date | null;
   checkpoint_started: boolean;
 }
