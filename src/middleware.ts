@@ -49,9 +49,13 @@ export default async function middleware(request: NextApiRequest, response: Next
     }
 
     const resp_project_api_keys = await db.select().from(project_api_keys).where(eq(project_api_keys.api_key, api_key));
+    const project_response = await db.select().from(project).where(eq(project.project_id, script_id));
     const api_key_data = resp_project_api_keys[0];
+    const project_data = project_response[0];
 
-    if (api_key_data.project_id != script_id && api_key_data.project_id != "all") {
+    const is_permission_all = api_key_data.project_id == "all" && api_key_data.creator_id != project_data.author_id;
+
+    if (api_key_data.project_id != script_id || is_permission_all) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
