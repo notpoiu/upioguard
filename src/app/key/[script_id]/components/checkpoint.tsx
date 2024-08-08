@@ -34,9 +34,9 @@ export function Checkpoint({ env, currentCheckpointIndex, checkpointurl, project
               if (!is_valid) {
                 toast.error(`Sorry something went wrong, maybe you came back to this page too fast (minimum ${minimum_checkpoint_switch_duration} seconds between checkpoints)`);
                 return;
+              } else {
+                router.push(checkpointurl);
               }
-
-              router.push(checkpointurl);
             });
           }}>
             Go to checkpoint {currentCheckpointIndex + 1}

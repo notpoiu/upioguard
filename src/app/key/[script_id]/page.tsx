@@ -152,7 +152,7 @@ export default async function KeyPage({
     let current_checkpoint_index = KeyUtility.get_checkpoint_index();
     
     let show_checkpoint = false;
-    if (KeyUtility.is_checkpoint_key_expired() || KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && current_checkpoint_index == 0) {
+    if (KeyUtility.is_checkpoint_key_expired() || (!KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && current_checkpoint_index == 0)) {
       await KeyUtility.start_checkpoint();
       show_checkpoint = true;
       current_checkpoint_index = 0;
