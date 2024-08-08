@@ -153,7 +153,6 @@ export default async function KeyPage({
     
     let show_checkpoint = false;
     if (KeyUtility.is_checkpoint_key_expired() || KeyUtility.get_checkpoint_key_started() && !KeyUtility.get_checkpoint_key_finished() && current_checkpoint_index == 0) {
-      console.log("starting checkpoint");
       await KeyUtility.start_checkpoint();
       show_checkpoint = true;
       current_checkpoint_index = 0;
@@ -162,12 +161,8 @@ export default async function KeyPage({
     // Intermadiate checkpoint reached
     let error_key_occured = false;
 
-    const verify_turnstile_cookie = cookies().get("upioguard-turnstile")?.value;
-    if (KeyUtility.is_checkpoint_key_expired() || verify_turnstile_cookie != undefined && !KeyUtility.get_checkpoint_key_finished() && KeyUtility.get_checkpoint_key_started()) {
-      console.log("verifying turnstile");
-      show_checkpoint = true;
-      //
-      //error_key_occured = !is_valid;
+    if (new Date((KeyUtility.key_data.checkpoint_last_finished_at ?? new Date(0)).getTime() + parseInt(KeyUtility.project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000).getTime() < new Date().getTime()) {
+      error_key_occured = true;
     }
 
 
@@ -196,7 +191,8 @@ export default async function KeyPage({
               Something went wrong, maybe you came back to this page too fast (minimum {project_data.minimum_checkpoint_switch_duration} seconds between checkpoints)
             </p>
 
-            <form action={() => {
+            <form action={async () => {
+              "use server";
               redirect(`/key/${params.script_id}`);
             }}>
               <Button className="mt-2">Retry</Button>
