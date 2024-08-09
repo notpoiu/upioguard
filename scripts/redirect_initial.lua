@@ -31,7 +31,6 @@ local req = clonef(_req)
 local loadstr = clonef(loadstring)
 local player = cloner(game:GetService("Players").LocalPlayer)
 local _game = cloner(game)
-local _get_prod_info = clonef(game:GetService("MarketplaceService").GetProductInfo)
 
 local _debug_info = clonef(debug.info or debug.getinfo)
 
@@ -88,9 +87,9 @@ pcall(function() DeviceInfo.DevicePlatform = InputService:GetPlatform(); end);
 DeviceInfo.IsMobile = (DeviceInfo.DevicePlatform == Enum.Platform.Android or DeviceInfo.DevicePlatform == Enum.Platform.IOS);
 
 local game_name = "Game Name was not found"
-
 pcall(function()
-  game_name = _get_prod_info(_game.PlaceId, _game.JobId).Name:gsub("([^a-zA-Z0-9 ]+)", "")
+  local game_info = game:GetService("MarketplaceService"):GetProductInfo(_game.PlaceId, _game.JobId)
+  game_name = game_info.Name:gsub("([^a-zA-Z0-9 ]+)", "")
 end)
 
 UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 4)
