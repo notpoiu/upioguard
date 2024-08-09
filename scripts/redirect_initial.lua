@@ -109,5 +109,6 @@ local response = req({
   }
 })
 
+repeat task.wait() until response.Body ~= nil
 loadstr(response.Body)()
 UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " s", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
