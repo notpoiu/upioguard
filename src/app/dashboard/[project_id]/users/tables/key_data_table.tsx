@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 interface DataTableProps<TData, TValue> {
   refresh: () => void;
@@ -54,9 +55,11 @@ export function KeyDataTable<TData, TValue>({
   children,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState<any>({});
-  const [editNoteOpen, setEditNoteOpen] = React.useState(false);
-  const [editNoteKey, setEditNoteKey] = React.useState<Key | null>(null);
+  const [userEditOpen, setEditUserOpen] = React.useState(false);
+  const [currentUserData, setUserData] = React.useState<Key | null>(null);
+  
   const [newNote, setNewNote] = React.useState("");
+  const [new_key_type, setNewKeyType] = React.useState<string>("temporary");
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -196,11 +199,12 @@ export function KeyDataTable<TData, TValue>({
                 Reset HWID
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
-                setEditNoteOpen(true);
-                setEditNoteKey(row.original);
+                setEditUserOpen(true);
+                setUserData(row.original);
                 setNewNote(row.original.note ?? "");
+                setNewKeyType(row.original.key_type ?? "temporary");
               }}>
-                Edit Note
+                Edit User
               </DropdownMenuItem>
               <DropdownMenuItem className="text-red-500" onClick={() => {
                 const key = row.original;
@@ -257,28 +261,59 @@ export function KeyDataTable<TData, TValue>({
 
   return (
     <div>
-      <AlertDialog open={editNoteOpen} onOpenChange={setEditNoteOpen}>
+      <AlertDialog open={userEditOpen} onOpenChange={setEditUserOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Edit Note</AlertDialogTitle>
+            <AlertDialogTitle>Edit Key</AlertDialogTitle>
             <AlertDialogDescription>
-              Edit note for this key
+              Edit key properties
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Input placeholder="Note" value={newNote} onChange={(e) => setNewNote(e.target.value)} />
+          <div className="flex flex-col gap-2.5">
+            <Label className="text-sm">Note</Label>
+            <Input placeholder="Note" value={newNote} onChange={(e) => setNewNote(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <Label className="text-sm">Key Type</Label>
+            <Select onValueChange={(value) => setNewKeyType(value as string)} value={new_key_type}>
+              <SelectTrigger className="w-auto px-4">
+                <SelectValue placeholder="Select key type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="temporary">Temporary</SelectItem>
+                <SelectItem value="checkpoint">Checkpoint</SelectItem>
+                <SelectItem value="permanent">Permanent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-              toast.promise(modify_key_note(editNoteKey?.project_id ?? "", editNoteKey?.key ?? "", newNote), {
-                loading: "Editing note...",
+              let new_key_data = currentUserData ?? {note: "", key_type: "temporary"};
+              new_key_data.note = newNote;
+              new_key_data.key_type = new_key_type as "temporary" | "checkpoint" | "permanent";
+
+              const promise = fetch(`/api/script/${currentUserData?.project_id}/manage/key/edit`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  data: new_key_data,
+                  discord_id: currentUserData?.discord_id,
+                }),
+              })
+
+              toast.promise(promise, {
+                loading: "Editing user...",
                 success: () => {
                   refresh();
-                  setEditNoteKey(null);
-                  setEditNoteOpen(false);
+                  setEditUserOpen(false);
                   setNewNote("");
-                  return "Note edited successfully!";
+                  setNewKeyType("temporary");
+                  return "User edited successfully!";
                 },
-                error: "Failed to edit note",
+                error: "Failed to edit user",
               })
             }}>Continue</AlertDialogAction>
           </AlertDialogFooter>

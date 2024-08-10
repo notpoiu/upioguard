@@ -161,7 +161,7 @@ export default function Keys({params}: {params: {project_id: string}}) {
             <CardContent>
               <ScriptBlacklistDataTable data={script_ban_data} refresh={refreshScriptBanData}>
                 <AlertDialog>
-                  <AlertDialogTrigger asChild><Button variant="destructive">Create Ban</Button></AlertDialogTrigger>
+                  <AlertDialogTrigger asChild><Button variant="destructive">Blacklist</Button></AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Blacklist User</AlertDialogTitle>
@@ -254,13 +254,13 @@ export default function Keys({params}: {params: {project_id: string}}) {
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline">Export Bans</Button>
+                    <Button variant="outline">Export Blacklist</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Export Bans</AlertDialogTitle>
+                      <AlertDialogTitle>Export Blacklist</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Export bans for this project in different formats
+                        Export blacklist for this project in different formats
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     

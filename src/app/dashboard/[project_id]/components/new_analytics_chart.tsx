@@ -81,7 +81,7 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
       }
       
       for (const execution of data) {
-        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp.getTime() + day_duration));
+        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp.getTime()));
         const index = organized_data.findIndex((item) => item.date === executionDate);
         if (index !== -1) {
           organized_data[index][execution.execution_type] += 1;
