@@ -163,7 +163,6 @@ export default async function KeyPage({
     }
 
     const referer = headers().get("referer") ?? "";
-    console.log(referer, new URL(old_checkpoint_url).origin.includes(referer), new URL(old_checkpoint_url).origin);
     if (show_checkpoint && old_checkpoint_url != undefined && current_checkpoint_index != 0 && new URL(old_checkpoint_url).origin.includes(referer)) {
       error_key_occured = true;
     }
