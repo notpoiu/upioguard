@@ -1,31 +1,27 @@
 import { auth, signIn, signOut } from "@/auth";
 import BlurFade from "@/components/magicui/blur-fade";
 import { Button } from "@/components/ui/button";
+import Marquee from "@/components/magicui/marquee";
 import Link from "next/link";
 import Image from "next/image";
 import ShineBorder from "@/components/magicui/shine-border";
 import { cn } from "@/lib/utils";
 import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-
-import "./gradient.css";
 import {
-  Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import NumberTicker from "@/components/magicui/number-ticker";
 import { MagicCard } from "@/components/magicui/magic-card";
+
+import "./gradient.css";
 
 import { db } from "@/db";
 import { admins } from "@/db/schema";
 
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import Marquee from "@/components/magicui/marquee";
 
 const reviews = [
   {
@@ -192,7 +188,7 @@ export default async function Home() {
         </div>
       </BlurFade>
 
-      <BlurFade delay={1} inView className="w-screen fle flex-col justify-center items-center mt-[20vw] px-10">
+      <BlurFade delay={1} inView className="w-screen fle flex-col justify-center items-center mt-[10vw] px-10">
         <BlurFade delay={1.25} inView className="w-screen flex justify-center items-center">
           <h1 className="text-2xl leading-relaxed font-bold mb-5">
             Here&apos;s what people say about <span className="magic-text">upioguard</span>

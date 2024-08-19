@@ -11,7 +11,7 @@ kick_prompt.MessageArea.ErrorFrame:WaitForChild("ButtonArea", math.huge)
 kick_prompt.MessageArea.ErrorFrame.ButtonArea:WaitForChild("ButtonLayout", math.huge)
 kick_prompt.MessageArea.ErrorFrame.ButtonArea:WaitForChild("LeaveButton", math.huge)
 
-local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request;
+local req = (http and http.request) or http_request or request;
 if req then
   if kick_prompt.MessageArea.ErrorFrame.ButtonArea:FindFirstChild("discord") then
       kick_prompt.MessageArea.ErrorFrame.ButtonArea.discord:Destroy()

@@ -3,8 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { checkpoints, Key, project, Project, users } from "@/db/schema";
-import { count, eq, sql } from "drizzle-orm";
-import { check } from "drizzle-orm/mysql-core";
+import { eq, sql } from "drizzle-orm";
 
 // I coudnt work with the spaghetti code that i made so uh
 class KeyHelper {
@@ -348,7 +347,6 @@ export async function create_key_helper(project_id: string) {
 
 export async function create_key_helper_key(project_id: string, key: string) {
   const session = await auth();
-  const userid = session?.user?.id ?? "0";
   
   const KeyUtility = new KeyHelper(project_id, undefined, key);
   await KeyUtility.init();

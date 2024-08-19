@@ -6,8 +6,8 @@ import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
-import { is, sql } from "drizzle-orm";
-import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
+import { sql } from "drizzle-orm";
+import { create_key_helper_key } from "@/lib/key_utils";
 // @ts-ignore
 import { minify } from 'luamin';
 
@@ -21,24 +21,26 @@ const octokit = new Octokit({
 });
 */
 
-function get_hwid(headersList: Headers) {
-  let fingerprint = "not found";
+const get_hwid = async (headers: Headers): Promise<string | false> => {
+  let fingerprint: string | undefined;
 
-  if (headersList !== undefined && headersList instanceof Headers) {
-      headersList.forEach((value: string, name: string) => {
-          const val_name = name.toLocaleLowerCase();
+  const headerIterator = headers.entries();
 
-          const is_fingerprint = val_name.includes('fingerprint') || val_name.includes('hwid') || val_name.includes("identifier");
-          const value_exists = value != undefined && value != null && value != "";
+  while (true) {
+      const next = headerIterator.next();
+      if (next.done) break;
 
-          if (is_fingerprint && value_exists) {
-              fingerprint = value;
-          }
-      });
+      const [headerKey, headerValue] = next.value;
+
+      if (headerKey.includes("fingerprint") || headerKey.includes("hwid") || headerKey.includes("identifier")) {
+          fingerprint = headerValue;
+      }
   }
-  
-  return fingerprint;
-}
+
+  return fingerprint ?? false;
+};
+
+
 
 async function collect_analytics(project_id: string,discord_id?: string | null, webhook_url?: string | null, webhook_data?: any | null) {
   try {
@@ -240,7 +242,7 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     [headers_in_use[7]]: is_mobile,
   } = headers_dict;
 
-  if (!fingerprint || fingerprint.trim() == "not found" || fingerprint.trim() == "" ) {
+  if (!fingerprint || fingerprint.trim() == "" ) {
     return new Response(kick_script("upioguard", "Invalid executor", false, ""));
   }
 
