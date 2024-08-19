@@ -51,7 +51,7 @@ const messages = {
   "temporary": "Thank you for supporting this script, here is your temp key, this key will expire the {expiry}",
   "permanent": "Thank you for supporting this script, here is your permanent key",
   "checkpoint-finished": "Thank you for supporting this script, here is your checkpoint key, this key will be valid until {time}",
-  "checkpoint-not-finished": "By doing this checkpoint system you for supporting this script, thank you!",
+  "checkpoint-not-finished": "By doing this checkpoint, you are supporting this script, thank you!",
 }
 
 function diff_minutes(dt2: Date, dt1: Date): number
