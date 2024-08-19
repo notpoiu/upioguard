@@ -21,7 +21,7 @@ const octokit = new Octokit({
 });
 */
 
-const get_hwid = async (headers: Headers): Promise<string | false> => {
+const get_hwid =  (headers: Headers): string | false => {
   let fingerprint: string | undefined;
 
   const headerIterator = headers.entries();
