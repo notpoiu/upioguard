@@ -107,7 +107,7 @@ export const users = pgTable("users", {
   discord_id: text("discord_id").notNull(),
   username: text("name").notNull(),
   note: text("note"),
-  key: text("key").notNull(),
+  key: text("key").notNull().primaryKey(),
   key_expires: timestamp("key_expires"),
   key_type: key_type("key_type"),
   hwid: text("hwid"),
