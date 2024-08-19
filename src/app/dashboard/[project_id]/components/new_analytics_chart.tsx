@@ -71,8 +71,9 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
       for (let i = 0; i < 7; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
+
         const dateKey = normalizeToUTC(new Date(date.getTime() + day_duration));
-        console.log(dateKey);
+        
         organized_data.unshift({
           date: dateKey,
           desktop: 0,
@@ -81,8 +82,9 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
       }
       
       for (const execution of data) {
-        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp.getTime()));
+        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp.getTime() + day_duration*today.getDay()));
         const index = organized_data.findIndex((item) => item.date === executionDate);
+
         if (index !== -1) {
           organized_data[index][execution.execution_type] += 1;
         }
