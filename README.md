@@ -1,5 +1,5 @@
 # upioguard
-A open source lua script protection service. This project is under the [GNU General Public License v3.0](license).
+A open source lua script protection service. This project is under the [MIT License](license).
 
 ## What is this?
 This is a lua script protection service. It protects and gives users a key attached to their discord account. The key can be used to access premium features of the script.
