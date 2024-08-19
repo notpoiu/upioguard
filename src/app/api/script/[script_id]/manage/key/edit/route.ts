@@ -41,7 +41,8 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
   }
 
   let validated_data = KeySchema.parse(JSON.parse(data));
-  let database_data: Key = {
+
+  await db.update(users).set({
     project_id: params.script_id,
     discord_id: validated_data.discord_id,
     username: validated_data.username,
@@ -57,9 +58,7 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
     checkpoint_started_at: new Date(validated_data.checkpoint_started_at ?? 0),
     checkpoint_started: validated_data.checkpoint_started,
     key_expires: new Date(validated_data.key_expires ?? 0),
-  };
-
-  await db.update(users).set(database_data).where(eq(users.discord_id, discord_id));
+  }).where(eq(users.discord_id, discord_id));
 
   return new Response(JSON.stringify({
     success: true
