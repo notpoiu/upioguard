@@ -44,7 +44,7 @@ export default async function SettingsPage() {
           <Tabs defaultValue="account" orientation="horizontal">
             <TabsList>
               <TabsTrigger value="account">Account</TabsTrigger>
-              <TabsTrigger value="developer">Developper Settings</TabsTrigger>
+              <TabsTrigger value="developer">Developer Settings</TabsTrigger>
             </TabsList>
             <TabsContent value="account">
               <Card className="mt-5">
