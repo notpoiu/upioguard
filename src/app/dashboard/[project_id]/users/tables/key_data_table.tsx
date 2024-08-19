@@ -326,12 +326,14 @@ export function KeyDataTable<TData, TValue>({
               new_key_data.note = newNote;
               new_key_data.key_type = new_key_type as "temporary" | "checkpoint" | "permanent";
 
+              const is_new_type = new_key_type !== currentUserData?.key_type;
+              
               if (new_key_type === "temporary" && !keyExpiry) {
                 toast.error("Key expires is required for temporary keys");
                 return;
               }
 
-              new_key_data.key_expires = new_key_type === "temporary" ? keyExpiry : undefined;
+              new_key_data.key_expires = new_key_type === "temporary" ? keyExpiry : new Date(0);
 
               const promise = fetch(`/api/script/${currentUserData?.project_id}/manage/key/edit`, {
                 method: "POST",
@@ -341,6 +343,7 @@ export function KeyDataTable<TData, TValue>({
                 body: JSON.stringify({
                   data: new_key_data,
                   discord_id: currentUserData?.discord_id,
+                  reset_checkpoint_data: is_new_type,
                 }),
               })
 

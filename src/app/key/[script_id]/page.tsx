@@ -150,15 +150,24 @@ export default async function KeyPage({
   description = description.replace("{time}", time);
 
   if (key_type == "checkpoint") {
-    const { show_checkpoint, current_checkpoint_index, error_key_occured } = await KeyUtility.handleCheckpointKey(project_data, checkpoints_db_response);
+    let { show_checkpoint, current_checkpoint_index, error_key_occured } = await KeyUtility.handleCheckpointKey(project_data, checkpoints_db_response);
 
     // handle checkpoint   
     const host = headers().get("host") ?? "";
   
     let next_checkpoint_url = checkpoints_db_response[current_checkpoint_index ?? 0]?.checkpoint_url;
+    let old_checkpoint_url = checkpoints_db_response[Math.abs((current_checkpoint_index ?? 0) - 1)]?.checkpoint_url;
 
     if (next_checkpoint_url == undefined) {
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
+    }
+
+    if (show_checkpoint && old_checkpoint_url != undefined && current_checkpoint_index != 0) {
+      const host = headers().get("host") ?? "";
+
+      if (new URL(old_checkpoint_url).origin != host) {
+        error_key_occured = true;
+      }
     }
 
     return (
@@ -174,7 +183,7 @@ export default async function KeyPage({
         )}
   
         {!error_key_occured && show_checkpoint && (
-          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index} checkpointurl={next_checkpoint_url} project_id={params.script_id} minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"}  />
+          <Checkpoint env={process.env.NODE_ENV} currentCheckpointIndex={current_checkpoint_index ?? 0} checkpointurl={next_checkpoint_url} project_id={params.script_id} minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"}  />
         )}
       </KeySystemWrapper>
     )
