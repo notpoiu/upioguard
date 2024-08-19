@@ -27,7 +27,9 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
     data,
     discord_id
   } = await request.json();
-
+  console.log(data);
+  console.log(discord_id);
+  console.log("validating...");
   if (!KeySchema.safeParse(JSON.parse(data)).success) {
     return new Response(JSON.stringify({
       success: false,
@@ -40,6 +42,7 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
     });
   }
 
+  console.log("validated");
   let validated_data = KeySchema.parse(JSON.parse(data));
 
   await db.update(users).set({
@@ -59,6 +62,7 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
     checkpoint_started: validated_data.checkpoint_started,
     key_expires: new Date(validated_data.key_expires ?? 0),
   }).where(eq(users.discord_id, discord_id));
+  console.log("updated");
 
   return new Response(JSON.stringify({
     success: true
