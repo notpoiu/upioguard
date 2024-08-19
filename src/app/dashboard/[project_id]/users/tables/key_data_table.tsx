@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Key } from "@/db/schema";
-import { FilterIcon, MoreHorizontal } from "lucide-react";
+import { CalendarIcon, FilterIcon, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
@@ -42,6 +42,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
   refresh: () => void;
@@ -57,6 +60,7 @@ export function KeyDataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = React.useState<any>({});
   const [userEditOpen, setEditUserOpen] = React.useState(false);
   const [currentUserData, setUserData] = React.useState<Key | null>(null);
+  const [keyExpiry, setKeyExpiry] = React.useState<Date>();
   
   const [newNote, setNewNote] = React.useState("");
   const [new_key_type, setNewKeyType] = React.useState<string>("temporary");
@@ -286,12 +290,48 @@ export function KeyDataTable<TData, TValue>({
               </SelectContent>
             </Select>
           </div>
+
+          {new_key_type === "temporary" && (
+            <div className="flex flex-col gap-2.5">
+              <Label htmlFor="keyExpiry">Key Expires</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !keyExpiry && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {keyExpiry ? format(keyExpiry, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={keyExpiry}
+                    onSelect={setKeyExpiry}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-              let new_key_data = currentUserData ?? {note: "", key_type: "temporary"};
+              let new_key_data = currentUserData ?? {note: "", key_type: "temporary", key_expires: undefined};
               new_key_data.note = newNote;
               new_key_data.key_type = new_key_type as "temporary" | "checkpoint" | "permanent";
+
+              if (new_key_type === "temporary" && !keyExpiry) {
+                toast.error("Key expires is required for temporary keys");
+                return;
+              }
+
+              new_key_data.key_expires = new_key_type === "temporary" ? keyExpiry : undefined;
 
               const promise = fetch(`/api/script/${currentUserData?.project_id}/manage/key/edit`, {
                 method: "POST",
@@ -311,6 +351,7 @@ export function KeyDataTable<TData, TValue>({
                   setEditUserOpen(false);
                   setNewNote("");
                   setNewKeyType("temporary");
+                  setKeyExpiry(undefined);
                   return "User edited successfully!";
                 },
                 error: "Failed to edit user",
