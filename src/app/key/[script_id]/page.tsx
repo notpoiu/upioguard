@@ -162,18 +162,15 @@ export default async function KeyPage({
       next_checkpoint_url = process.env.NODE_ENV == "production" ? `https://${host}/key/${params.script_id}/error/no_checkpoint_configured` : `http://${host}/key/${params.script_id}/error/no_checkpoint_configured`;
     }
 
-    if (show_checkpoint && old_checkpoint_url != undefined && current_checkpoint_index != 0) {
-      const host = headers().get("host") ?? "";
-
-      if (new URL(old_checkpoint_url).origin != host) {
-        error_key_occured = true;
-      }
+    const referer = headers().get("referer") ?? "";
+    if (show_checkpoint && old_checkpoint_url != undefined && current_checkpoint_index != 0 && new URL(old_checkpoint_url).origin != referer) {
+      error_key_occured = true;
     }
 
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
         {error_key_occured && (
-          <RateLimit minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"} />
+          <RateLimit minimum_checkpoint_switch_duration={project_data.minimum_checkpoint_switch_duration ?? "15"} old_link={old_checkpoint_url ?? next_checkpoint_url} />
         )}
 
         {key && !show_checkpoint && !error_key_occured && (
