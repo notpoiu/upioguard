@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { Key, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const KeySchema = z.object({
@@ -29,15 +30,10 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
   } = await request.json();
 
   if (!KeySchema.safeParse(data).success) {
-    return new Response(JSON.stringify({
+    return NextResponse.json({
       success: false,
-      error: "Inavlid data type"
-    }), {
-      status: 400,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      error: "Inavlid data type",
+    }, { status: 400 });
   }
 
   let validated_data = KeySchema.parse(data);
@@ -60,12 +56,24 @@ export async function POST(request: Request, {params}: {params: {script_id: stri
     key_expires: new Date(validated_data.key_expires ?? 0),
   }).where(eq(users.discord_id, discord_id));
 
-  return new Response(JSON.stringify({
-    success: true
-  }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-    },
+  return NextResponse.json({
+    success: true,
+    new_data: {
+      project_id: params.script_id,
+      discord_id: validated_data.discord_id,
+      username: validated_data.username,
+      note: validated_data.note,
+      key: validated_data.key,
+      key_type: validated_data.key_type,
+      hwid: validated_data.hwid,
+      executor: validated_data.executor,
+      checkpoints_finished: validated_data.checkpoints_finished,
+      checkpoints_finished_at: new Date(validated_data.checkpoints_finished_at ?? 0),
+      checkpoint_index: validated_data.checkpoint_index,
+      checkpoint_last_finished_at: new Date(validated_data.checkpoint_last_finished_at ?? 0),
+      checkpoint_started_at: new Date(validated_data.checkpoint_started_at ?? 0),
+      checkpoint_started: validated_data.checkpoint_started,
+      key_expires: new Date(validated_data.key_expires ?? 0),
+    }
   });
 }

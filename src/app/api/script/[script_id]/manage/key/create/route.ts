@@ -37,6 +37,7 @@ export async function POST(req: NextRequest, {params}: { params: {script_id: str
   });
 
   return NextResponse.json({
+    success: true,
     key: new_key
   })
 }
