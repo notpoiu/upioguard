@@ -3,7 +3,7 @@ import { users } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-export default async function DELETE(request: Request, { params }: { params: { script_id: string } }) {
+export async function DELETE(request: Request, { params }: { params: { script_id: string } }) {
   const { discord_id } = await request.json();
 
   if (!discord_id) {
