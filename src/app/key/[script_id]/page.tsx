@@ -174,9 +174,7 @@ export default async function KeyPage({
         )}
 
         {key && !show_checkpoint && !error_key_occured && (
-          <KeyInput upioguard_key={key}>
-            <Input id="key" value={key} readOnly />
-          </KeyInput>
+          <KeyInput upioguard_key={key} project_id={params.script_id} />
         )}
   
         {!error_key_occured && show_checkpoint && (
@@ -190,9 +188,7 @@ export default async function KeyPage({
     return (
       <KeySystemWrapper script_data={project_data} description={description}>
         {key && (key_type == "temporary" || key_type == "permanent") && (
-          <KeyInput upioguard_key={key}>
-            <Input id="key" value={key} readOnly />
-          </KeyInput>
+          <KeyInput upioguard_key={key} project_id={params.script_id} />
         )}
       </KeySystemWrapper>
     );
