@@ -195,10 +195,10 @@ class KeyHelper {
   
     // Check for rate limiting
     const lastFinishedAt = this.key_data.checkpoint_last_finished_at;
-    const minSwitchDuration = parseInt(project_data.minimum_checkpoint_switch_duration ?? "15") * 60 * 1000; // Convert to milliseconds
+    const minSwitchDuration = parseInt(project_data.minimum_checkpoint_switch_duration ?? "15")
   
     if (lastFinishedAt && !isFinished) {
-      const timeSinceLastCheckpoint = new Date().getTime() - new Date(lastFinishedAt).getTime();
+      const timeSinceLastCheckpoint = (new Date().getTime() - new Date(lastFinishedAt).getTime()) / 1000; // Convert to seconds
       if (timeSinceLastCheckpoint < minSwitchDuration) {
         return { is_premium: false, error_key_occured: true };
       }
