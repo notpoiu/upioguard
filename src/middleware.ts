@@ -10,11 +10,7 @@ import { validate_permissions } from "./app/dashboard/server";
 import { headers } from "next/headers";
 
 function get_pathname(request: NextApiRequest) {
-  const url_parts = request.url?.split("/");
-  url_parts?.splice(0, 3);
-  let url_path = "/"+url_parts?.join("/");
-
-  return url_path;
+  return new URL(request.url ?? "https://google.com/").pathname;
 }
 
 export default async function middleware(request: NextApiRequest, response: NextApiResponse) {

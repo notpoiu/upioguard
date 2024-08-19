@@ -1,40 +1,32 @@
-// TODO: rewrite this api route
-
 import { db } from "@/db";
-import { banned_users, checkpoints, project, project_executions, users } from "@/db/schema";
+import { banned_users, checkpoints, project_executions, users } from "@/db/schema";
 import { kick_script } from "@/lib/luau_utils";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
-import { is, sql } from "drizzle-orm";
-import { create_key_helper, create_key_helper_key } from "@/lib/key_utils";
+import { sql } from "drizzle-orm";
+import { create_key_helper_key } from "@/lib/key_utils";
+
 // @ts-ignore
 import { minify } from 'luamin';
 
 import path from "path";
 import fs from "fs";
 
-/*
-
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
-*/
-
-function get_hwid(headersList: Headers) {
+function get_hwid(headers: Headers) {
   let fingerprint = "not found";
 
-  if (headersList !== undefined && headersList instanceof Headers) {
-      headersList.forEach((value: string, name: string) => {
-          const val_name = name.toLocaleLowerCase();
+  if (headers !== undefined && headers instanceof Headers) {
+    headers.forEach((value: string, name: string) => {
+        const val_name = name.toLocaleLowerCase();
 
-          const is_fingerprint = val_name.includes('fingerprint') || val_name.includes('hwid') || val_name.includes("identifier");
-          const value_exists = value != undefined && value != null && value != "";
+        const is_fingerprint = val_name.includes('fingerprint') || val_name.includes('hwid') || val_name.includes("identifier");
+        const value_exists = value != undefined && value != null && value != "";
 
-          if (is_fingerprint && value_exists) {
-              fingerprint = value;
-          }
-      });
+        if (is_fingerprint && value_exists) {
+            fingerprint = value;
+        }
+    });
   }
   
   return fingerprint;
