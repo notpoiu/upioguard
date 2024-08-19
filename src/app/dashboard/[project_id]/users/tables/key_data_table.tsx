@@ -101,7 +101,7 @@ export function KeyDataTable<TData, TValue>({
         return (
           <>
             <Badge variant={(row.original.key_type === "temporary" || row.original.key_type === "checkpoint") ? "outline" : "default"} className="capitalize">{row.original.key_type}</Badge>
-            {row.original.key_expires !== null && (row.original.key_expires as Date).getTime() < Date.now() && <Badge variant="destructive" className="capitalize mt-2">Expired</Badge>}
+            {row.original.key_expires !== null && row.original.key_type !== "permanent" && (row.original.key_expires as Date).getTime() < Date.now() && <Badge variant="destructive" className="capitalize mt-2">Expired</Badge>}
           </>
         )
       }
