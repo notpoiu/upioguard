@@ -177,7 +177,7 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
                 Total script executions from the lifetime of the project
               </CardDescription>
 
-              <NumberTicker value={total_executions} className="mt-2" />
+              <NumberTicker value={total_executions} className="mt-2 text-3xl tracking-normal font-semibold" />
           </CardHeader>
         </Card>
       </div>
