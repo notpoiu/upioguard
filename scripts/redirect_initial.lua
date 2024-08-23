@@ -507,7 +507,7 @@ local headers = {
   ["upioguard-rbxluserid"] = tostring(player.UserId),
   ["upioguard-rbxlgamename"] = tostring(game_name),
   ["upioguard-executor"] = tostring(_identify_executor()),
-  ["upioguard-ismobile"] = tostring(IsMobile),
+  ["upioguard-ismobile"] = tostring(IsMobile) or "false",
 }
 
 local success, err = pcall(function()
