@@ -60,7 +60,7 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
       setThisMonthTotal(data.filter((execution) => new Date(execution.execution_timestamp).getMonth() === new Date().getMonth()).length);
   
       function normalizeToUTC(date: Date): string {
-        const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const utcDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
         return utcDate.toISOString().split("T")[0];
       }
   
@@ -72,7 +72,7 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
 
-        const dateKey = normalizeToUTC(new Date(date.getTime() + day_duration));
+        const dateKey = normalizeToUTC(new Date(date.getTime()));
         
         organized_data.unshift({
           date: dateKey,
@@ -81,15 +81,17 @@ export function AnalyticsChartComponent({project_id}: { project_id: string }) {
         });
       }
       
-      for (const execution of data) {
-        const executionDate = normalizeToUTC(new Date(execution.execution_timestamp.getTime() + day_duration*today.getDay()));
+      const filtered_data = data.filter((execution) => new Date(execution.execution_timestamp).getTime() > (new Date().getTime() - day_duration*7));
+
+      for (const execution of filtered_data) {
+        const executionDate = normalizeToUTC(execution.execution_timestamp);
         const index = organized_data.findIndex((item) => item.date === executionDate);
 
         if (index !== -1) {
           organized_data[index][execution.execution_type] += 1;
         }
       }
-  
+      
       setChartData(organized_data);
     });
   }
