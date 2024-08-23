@@ -160,6 +160,22 @@ function validate_header(header_key: string, headers_dict: any) {
   return true;
 }
 
+function validate_param(param_key: string, url_params: any) {
+  let param_value = url_params[param_key];
+
+  if (param_value == undefined || param_value == null) {
+    return false;
+  }
+
+  param_value = param_value.trim();
+
+  if (param_value == "not found" || param_value == "") {
+    return false;
+  }
+
+  return true;
+}
+
 const headers_in_use = [
   "upioguard-key",
   "upioguard-rbxlusername",
@@ -217,7 +233,7 @@ async function fetch_script(octokit: Octokit, project_data: any, user_data: any,
 }
 
 export async function GET(request: NextRequest, {params}: {params: {script_id: string}}) {
-  const headers_dict = Object.fromEntries(request.headers.entries());
+  let headers_dict = Object.fromEntries(request.headers.entries());
   const fingerprint = get_hwid(request.headers);
 
   // im sorry
@@ -236,10 +252,32 @@ export async function GET(request: NextRequest, {params}: {params: {script_id: s
     return new Response(kick_script("upioguard", "Invalid executor", false, ""));
   }
 
+  let check_url_params = false;
   for (const header_key of headers_in_use) {
-    if (!validate_header(header_key, headers_dict)) {
-      return new Response(kick_script("upioguard", "Invalid request\nMissing: " + header_key, false, ""));
+    if (!validate_header(header_key, headers_dict) && headers_dict[header_key] != fingerprint) {
+      check_url_params = true;
+      break;
     }
+  }
+
+  if (check_url_params) {
+    const url_params = request.nextUrl.searchParams;
+
+    for (const header_key of headers_in_use) {
+      if (!validate_param(header_key, JSON.parse(url_params.get("execution_data") ?? "{}"))) {
+        return new Response(kick_script("upioguard", "Invalid request\nMissing: " + header_key, false, ""));
+      }
+    }
+
+    const data = JSON.parse(url_params.get("execution_data") ?? "{}");
+    key = data["upioguard-key"] ?? "";
+    username = data["upioguard-rbxlusername"] ?? "username was not found";
+    placeid = data["upioguard-rbxlplaceid"] ?? "0";
+    jobid = data["upioguard-rbxljobid"] ?? "0";
+    gamename = data["upioguard-rbxlgamename"] ?? "Game Name was not found";
+    executor = data["upioguard-executor"] ?? "unknown";
+    userid = data["upioguard-rbxluserid"] ?? "0";
+    is_mobile = data["upioguard-ismobile"] ?? "false";
   }
 
   // Get Project Data
