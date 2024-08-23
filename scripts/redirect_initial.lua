@@ -530,5 +530,12 @@ local success, err = pcall(function()
 end)
 
 if not success then
-  loadstring(game:HttpGet("${origin}/api/script/${script_id}/execute/fallback?execution_data=" .. urlencode(json.encode(headers)))())()
+  local success, err = pcall(function()
+    loadstring(game:HttpGet("${origin}/api/script/${script_id}/execute/fallback?execution_data=" .. urlencode(json.encode(headers)))())()
+    UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " s", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
+  end)
+
+  if not success then
+    UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Failed to connect to servers. Maybe your executor is not good/stable enough?\n\nError: " .. err, "rbxasset://textures/AudioDiscovery/error.png", Color3.fromRGB(255, 0, 0))
+  end
 end
