@@ -8,14 +8,14 @@ local UPIOGUARD_INTERNAL_MESSAGE = console.custom_console_progressbar({
 
 UPIOGUARD_INTERNAL_MESSAGE.update_progress(1)
 pcall(restorefunction, clonefunction)
-pcall(restorefunction,cloneref)
+pcall(restorefunction, cloneref)
 local clonef = clonefunction or function(f) return function(...) return f(...) end end
 local cloner = cloneref or function(r) return r end
 
-local _req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request or function (...)
+local INTERNAL_req = (http and http.request) or http_request or request or function (...)
   return {
     Status = 500,
-    Body = "Horrible dogwater executor (celery probably real)"
+    Body = 'error("Error: Executor\'s request function was not found")'
   }
 end
 
@@ -27,25 +27,25 @@ pcall(_restorefunction,cloner)
 UPIOGUARD_INTERNAL_MESSAGE.update_progress(2)
 
 local _identify_executor = clonef(identifyexecutor or getexecutorname or function() return "unknown" end)
-local req = clonef(_req)
+local req = clonef(INTERNAL_req)
 local loadstr = clonef(loadstring)
 local player = cloner(game:GetService("Players").LocalPlayer)
 local _game = cloner(game)
 
 local _debug_info = clonef(debug.info or debug.getinfo)
 
-pcall(_restorefunction,_debug_info)
-pcall(_restorefunction,islclosure)
+pcall(_restorefunction, _debug_info)
+pcall(_restorefunction, islclosure)
 local _islclosure = clonef(islclosure or function(f)
   local function_data = _debug_info(f).what
 
   return function_data == "Lua"
 end)
 
-pcall(_restorefunction,isexecutorclosure)
+pcall(_restorefunction, isexecutorclosure)
 local _isexecutorclosure = clonef(isexecutorclosure)
 
-pcall(_restorefunction,isfunctionhooked)
+pcall(_restorefunction, isfunctionhooked)
 local _isfunctionhooked = clonef(isfunctionhooked)
 
 function is_tampered_with(obj)
@@ -79,18 +79,19 @@ if (is_tampered_with(req)) then
   assert(false, "request tampered with")
 end
 
-local InputService = cloner(game:GetService("UserInputService"))
 
-local DeviceInfo = {}
+local DevicePlatform, success = pcall(function() return game:GetService("UserInputService"):GetPlatform() end);
+if not success then DevicePlatform = Enum.Platform.None end
+local IsMobile = (DevicePlatform == Enum.Platform.Android or DevicePlatform == Enum.Platform.IOS);
 
-pcall(function() DeviceInfo.DevicePlatform = InputService:GetPlatform(); end);
-DeviceInfo.IsMobile = (DeviceInfo.DevicePlatform == Enum.Platform.Android or DeviceInfo.DevicePlatform == Enum.Platform.IOS);
-
-local game_name = "Game Name was not found"
-pcall(function()
+local game_name, success = pcall(function()
   local game_info = game:GetService("MarketplaceService"):GetProductInfo(_game.PlaceId, _game.JobId)
-  game_name = game_info.Name:gsub("([^a-zA-Z0-9 ]+)", "")
+  return game_info.Name:gsub("([^a-zA-Z0-9 ]+)", "")
 end)
+
+if not success then
+  game_name = "Game Name was not found"
+end
 
 UPIOGUARD_INTERNAL_MESSAGE.update_message_with_progress("[upioguard]: Connecting to servers...", 4)
 
@@ -105,7 +106,7 @@ local response = req({
     ["upioguard-rbxluserid"] = tostring(player.UserId),
     ["upioguard-rbxlgamename"] = tostring(game_name),
     ["upioguard-executor"] = tostring(_identify_executor()),
-    ["upioguard-ismobile"] = tostring(DeviceInfo.IsMobile),
+    ["upioguard-ismobile"] = tostring(IsMobile),
   }
 })
 
