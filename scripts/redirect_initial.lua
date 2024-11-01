@@ -43,21 +43,27 @@ local _islclosure = clonef(islclosure or function(f)
 end)
 
 pcall(_restorefunction, isexecutorclosure)
+local isexecutorclosure = isexecutorclosure or function(...) return true end
 local _isexecutorclosure = clonef(isexecutorclosure)
 
 pcall(_restorefunction, isfunctionhooked)
+local isfunctionhooked = isfunctionhooked or function(...) return false end
 local _isfunctionhooked = clonef(isfunctionhooked)
 
 function is_tampered_with(obj)
-  local success, response = pcall(function()
-    if _islclosure(obj) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
-      return true
-    end
+  if type(obj) == "function" then 
+    local success, response = pcall(function()
+      if (_islclosure(obj) and false == _isexecutorclosure(obj)) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
+        return true
+      end
 
-    return false
-  end)
+      return false
+    end)
 
-  assert(success, "[upioguard]: Error while checking if object is tampered with: " .. tostring(response))
+    assert(success, "[upioguard]: Error while checking if object is tampered with: " .. tostring(response))
+  else
+    response = false
+  end
   return response
 end
 
@@ -516,7 +522,10 @@ local success, err = pcall(function()
     Method = "GET",
     Headers = headers
   })
-  
+  task.wait()
+  if response.Status == nil then
+    response.Status = 200
+  end
   if response.Status ~= 200 then
     error("Error: Script response status code is not 200")
   end
