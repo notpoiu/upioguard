@@ -53,7 +53,7 @@ local _isfunctionhooked = clonef(isfunctionhooked)
 function is_tampered_with(obj)
   if type(obj) == "function" then 
     local success, response = pcall(function()
-      if (_islclosure(obj) and false == _isexecutorclosure(obj)) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
+      if (_islclosure(obj) and not _isexecutorclosure(obj)) or (_isexecutorclosure(obj) and _isfunctionhooked(obj)) then
         return true
       end
 
