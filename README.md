@@ -1,6 +1,10 @@
 # upioguard
 A open source lua script protection service. This project is under the [MIT License](LICENSE).
 
+> [!WARNING]
+> upioguard v1 is **NOT secure**. If you use this in production environements without heavily modifying the code, your whitelist **WILL** get cracked.
+
+
 ## What is this?
 This is a lua script protection service. It protects and gives users a key attached to their discord account. The key can be used to access premium features of the script.
 
