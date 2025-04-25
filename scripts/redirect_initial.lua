@@ -32,14 +32,14 @@ local loadstr = clonef(loadstring)
 local player = cloner(game:GetService("Players").LocalPlayer)
 local _game = cloner(game)
 
-local _debug_info = clonef(debug.info or debug.getinfo)
+local _debug_info = clonef(debug.info)
 
 pcall(_restorefunction, _debug_info)
 pcall(_restorefunction, islclosure)
 local _islclosure = clonef(islclosure or function(f)
-  local function_data = _debug_info(f).what
+  local function_data = _debug_info(f, "s")
 
-  return function_data == "Lua"
+  return function_data ~= "[C]"
 end)
 
 pcall(_restorefunction, isexecutorclosure)
@@ -534,17 +534,10 @@ local success, err = pcall(function()
     error("Error: Script response body is nil")
   end
 
-  loadstr(response.Body)()
+  task.spawn(function() loadstr(response.Body)() end)
   UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " s", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
 end)
 
 if not success then
-  local success, err = pcall(function()
-    loadstring(game:HttpGet("${origin}/api/script/${script_id}/execute/fallback?execution_data=" .. urlencode(json.encode(headers)))())()
-    UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Successfully connected to servers and checked validity in " .. (os.time() - start_time) .. " s", "rbxasset://textures/AudioDiscovery/done.png", Color3.fromRGB(51, 255, 85))
-  end)
-
-  if not success then
-    UPIOGUARD_INTERNAL_MESSAGE.update_message("[upioguard]: Failed to connect to servers. Maybe your executor is not good/stable enough?\n\nError: " .. err, "rbxasset://textures/AudioDiscovery/error.png", Color3.fromRGB(255, 0, 0))
-  end
+  task.spawn(function() loadstring(game:HttpGet("${origin}/api/script/${script_id}/execute/fallback?execution_data=" .. urlencode(json.encode(headers)))())() end)
 end
