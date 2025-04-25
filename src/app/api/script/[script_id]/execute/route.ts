@@ -6,10 +6,6 @@ import { eq } from "drizzle-orm/expressions";
 import { Octokit } from "@octokit/rest";
 import { sql } from "drizzle-orm";
 import { create_key_helper_key } from "@/lib/key_utils";
-
-// @ts-ignore
-import { minify } from 'luamin';
-
 import path from "path";
 import fs from "fs";
 
@@ -208,16 +204,7 @@ async function fetch_script(octokit: Octokit, project_data: any, user_data: any,
     // @ts-ignore
     const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
 
-    let returned_script_data_content = content;
-    try {
-      returned_script_data_content = minify(content, {
-        RenameGlobals: true,
-      });
-    } catch (error) {
-      console.log("Failed to minify: ", error);
-    }
-
-    response_script = response_script.replaceAll("${returned_content}", returned_script_data_content);
+    response_script = response_script.replaceAll("${returned_content}", content);
     response_script = response_script.replaceAll("${user_data.username}", user_data.username.replaceAll('"', '\\"'));
     response_script = response_script.replaceAll("${user_data.discord_id}", user_data.discord_id);
     response_script = response_script.replaceAll("${user_data.note}", user_data.note?.replaceAll('"', '\\"'));
@@ -226,9 +213,17 @@ async function fetch_script(octokit: Octokit, project_data: any, user_data: any,
     response_script = response_script.replaceAll("${user_data.expiry}", user_data.expiry ?? "nil");
     response_script = response_script.replaceAll("${user_data.is_premium}", user_data.is_premium);
 
-    return new Response(response_script);
+    return new Response(response_script, {
+      headers: {
+          "Content-Type": "text/plain",
+      },
+    });
   } catch (error) {
-    return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link));
+    return new Response(kick_script("upioguard", "Failed to fetch script from GitHub", is_discord_enabled, discord_link), {
+      headers: {
+          "Content-Type": "text/plain",
+      },
+    });
   }
 }
 
