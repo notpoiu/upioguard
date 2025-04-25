@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params}: { params: { script_id
 
   return new Response(script, {
     headers: {
-      "Content-Type": "text/plain",
+      "Content-Type": "text/plain; charset=utf-8",
     },
   });
 }
